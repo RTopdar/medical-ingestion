@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Run the doc-sync agent to sync IMPLEMENTATION_PLAN.md and architecture docs with the latest commit changes",
+            "if": "Bash(git commit*)"
+          }
+        ]
+      }
+    ]
+  }
+}
