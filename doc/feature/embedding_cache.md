@@ -13,19 +13,36 @@ status: stable
 
 ## Schema
 
-Single table `embedding_cache(hash PRIMARY KEY, model, embedding)` — `embedding` is stored as a JSON-serialized text column (`json.dumps`/`json.loads`), not a native array type, since sqlite has no vector column type.
+Two tables:
+
+1. **`embedding_cache(hash PRIMARY KEY, model, embedding)`** — main cache. `embedding` is stored as a JSON-serialized text column (`json.dumps`/`json.loads`), not a native array type, since sqlite has no vector column type.
+2. **`failed_embeddings(id, hash, text, error, model, attempt_count, created_at)`** — Dead-Letter Queue (DLQ). Records failed embedding attempts (text, error message, model, timestamp) for later inspection and optional manual retry. Populated by `Embedder.embed()` when a batch fails after all retries are exhausted.
 
 ## Components
 
-- `EmbeddingCache.__init__(db_path)` — opens/creates the sqlite file (creating parent dirs if needed) and the table if it doesn't exist.
-- `EmbeddingCache.make_key(model, text)` — `staticmethod`. Deterministic key: `sha256(f"{model}:{text.strip()}")`. Content-addressable — same `(model, text)` pair always produces the same key, so identical text always hits the cache regardless of when/how it was first embedded. Keying includes `model` so switching embedding models doesn't return stale vectors from a different model.
+- `EmbeddingCache.__init__(db_path)` — opens/creates the sqlite file (creating parent dirs if needed) and both tables if they don't exist. **Enables WAL mode** (`PRAGMA journal_mode=WAL`) and **autocommit** (`isolation_level=None`) for thread-safe concurrent reads/writes without lock contention.
+- `EmbeddingCache.make_key(model, text)` — `staticmethod`. Deterministic key: `sha256(f"{model}:{normalized_text}")`, where normalization collapses internal whitespace (`\s+ -> " "`) but only applies to the key, not to the text sent to the embedding API. Content-addressable — same `(model, text)` pair always produces the same key, so identical text (even with different spacing) always hits the cache regardless of when/how it was first embedded. Keying includes `model` so switching embedding models doesn't return stale vectors from a different model.
 - `EmbeddingCache.get_many(keys)` — batch lookup, returns `{key: vector}` for hits only; missing keys are simply absent from the result dict (no exception).
 - `EmbeddingCache.set_many(model, items)` — batch upsert (`INSERT OR REPLACE`) of `{key: vector}` pairs for a given model.
+- `EmbeddingCache.add_failed(text, error, model, text_hash=None)` — records a failed embedding attempt to the `failed_embeddings` DLQ table. Called by `Embedder.embed()` when a batch fails after all retries. Stores the text, error message, model, and optional cache hash for later inspection.
+- `EmbeddingCache.get_failed(limit=100)` — retrieves recent failed embeddings from the DLQ, ordered by creation timestamp (newest first). Returns a list of dicts with keys: `id`, `hash`, `text`, `error`, `model`, `attempt_count`, `created_at`. Useful for operational inspection, debugging, and deciding on manual retry strategies.
 - `EmbeddingCache.close()` — closes the sqlite connection.
+
+## Concurrency
+
+WAL mode + autocommit enable thread-safe concurrent access:
+
+- **WAL mode** (`PRAGMA journal_mode=WAL`) — Write-Ahead Logging allows multiple readers and writers to access the database simultaneously without blocking. Readers see a snapshot of the database at their query start time; writers create new snapshots without blocking readers.
+- **Autocommit** (`isolation_level=None`) — each SQL statement commits immediately, reducing transaction lock hold time.
+- **Per-thread connections** — each thread creates its own `EmbeddingCache` instance (calls `sqlite3.connect()` separately), all sharing the same `db_path` file. SQLite's WAL file-locking handles coordination between threads.
+
+**Rationale:** Bulk ingestion pipelines may parallelize embedding across multiple threads. Without WAL, database access would serialize, becoming a bottleneck. WAL + per-thread connections let all threads read/write concurrently, improving throughput.
+
+**Unbounded growth warning:** The cache and DLQ tables grow without bound in production. Future enhancements should add periodic `VACUUM` + size-cap logic or migrate to a vector DB that owns cache eviction (TTL, LRU). The DLQ may need its own lifecycle management (archive old failures, re-attempt old entries, or periodically truncate).
 
 ## Data flow
 
-[Embedder](/doc/feature/embedder.md) computes keys via `make_key()` → `get_many()` for cache hits → API call only for misses → `set_many()` persists new vectors → subsequent `embed()` calls (including future ingestion runs) hit cache instead of calling OpenRouter again.
+[Embedder](/doc/feature/embedder.md) computes keys via `make_key()` → `get_many()` for cache hits → API call only for misses (wrapped in retry logic) → success: `set_many()` persists new vectors → subsequent `embed()` calls (including future ingestion runs) hit cache instead of calling OpenRouter again; failure: `add_failed()` logs to DLQ → exception propagates.
 
 ## Settings
 
