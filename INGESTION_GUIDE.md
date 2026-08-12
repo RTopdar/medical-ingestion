@@ -158,7 +158,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ingestion.loaders import LoaderFactory
-from ingestion.chunker import ChunkerConfig, RecursiveChunker
+from ingestion.chunker import ChunkerConfig, ChunkerService
 
 # 1. Load JSON with rich metadata
 loader = LoaderFactory.json_loader("data")
@@ -166,8 +166,8 @@ docs = loader.load()
 
 # 2. Chunk for RAG
 config = ChunkerConfig(chunk_size=512, chunk_overlap=100)
-chunker = RecursiveChunker(config=config)
-chunks = chunker.chunk_documents(docs)
+chunker = ChunkerService(config=config)
+chunks = chunker.chunk(docs)
 
 # 3. Index to vector DB (pseudo-code)
 for chunk in chunks:

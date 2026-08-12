@@ -64,7 +64,7 @@ Learning project for vector data ingestion, parsing, RAG, and DB connections. Fo
 - **Purpose:** Executable entry points that wire ingestion components together
 - **Status:** ✓ Created
 - **Key files:** `scripts/ingest_documents.py` — full pipeline script (load JSON/PDF/CSV-Excel → chunk → summary stats)
-- **Known issue (inconsistency, not yet fixed):** `scripts/ingest_documents.py` calls `ChunkerConfig(chunk_size=..., chunk_overlap=..., separators=[...])` and `RecursiveChunker(...)`, but `ingestion/chunker.py` only defines `ChunkerConfig(chunk_size, chunk_overlap)` (no `separators` field) and `ChunkerService` (no `RecursiveChunker` class). This will raise at runtime — flagged for follow-up fix, not corrected here per doc-sync scope (docs describe code as-is).
+- **Fixed (2026-08-12):** `scripts/ingest_documents.py` previously called `ChunkerConfig(chunk_size=..., chunk_overlap=..., separators=[...])` and `RecursiveChunker(...)`, neither of which exist in `ingestion/chunker.py`. Now uses `ChunkerConfig(chunk_size, chunk_overlap)` + `ChunkerService(config=config)`, matching the real classes (commit `91e97b4`).
 
 ### 5. embeddings/ (planned)
 
