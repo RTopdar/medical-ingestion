@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ingestion.loaders import LoaderFactory
-from ingestion.chunker import ChunkerConfig, RecursiveChunker
+from ingestion.chunker import ChunkerConfig, ChunkerService
 from models.documents import Document
 
 
@@ -64,13 +64,9 @@ def ingest_csv_excel_documents(data_dir: str | Path = "data/csv") -> list[Docume
 def chunk_documents(documents: list[Document]) -> list:
     """Chunk documents for RAG."""
     print(f"\nChunking {len(documents)} documents...")
-    config = ChunkerConfig(
-        chunk_size=512,
-        chunk_overlap=100,
-        separators=["\n\n", "\n", " "],
-    )
-    chunker = RecursiveChunker(config=config)
-    chunks = chunker.chunk_documents(documents)
+    config = ChunkerConfig(chunk_size=512, chunk_overlap=100)
+    chunker = ChunkerService(config=config)
+    chunks = chunker.chunk(documents)
     print(f"  ✓ Created {len(chunks)} chunks")
     return chunks
 
