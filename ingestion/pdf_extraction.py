@@ -64,7 +64,36 @@ def load_pdf_documents(pdf_dir: str | Path = "dummy_docs") -> List[Document]:
 
         for doc in docs:
             doc.page_content = clean_text(doc.page_content)
+
+            # Preserve and enrich metadata from Docling
             doc.metadata["file"] = pdf_path.name
+            doc.metadata["source_file"] = str(pdf_path)
+
+            # Extract useful fields from dl_meta for RAG
+            if "dl_meta" in doc.metadata:
+                dl_meta = doc.metadata["dl_meta"]
+
+                # Extract page number and bounding box from provenance
+                if "doc_items" in dl_meta and dl_meta["doc_items"]:
+                    first_item = dl_meta["doc_items"][0]
+                    if "prov" in first_item and first_item["prov"]:
+                        prov = first_item["prov"][0]
+                        doc.metadata["page_number"] = prov.get("page_no")
+                        doc.metadata["bbox"] = prov.get("bbox")
+                        doc.metadata["char_span"] = prov.get("charspan")
+
+                    # Extract element type (text, table, image, etc)
+                    doc.metadata["element_type"] = first_item.get("label", "text")
+
+                # Extract section headings
+                if "headings" in dl_meta:
+                    doc.metadata["headings"] = dl_meta["headings"]
+                    doc.metadata["section"] = " > ".join(dl_meta["headings"])
+
+                # Extract content layer (body, header, footer)
+                if "doc_items" in dl_meta and dl_meta["doc_items"]:
+                    doc.metadata["content_layer"] = dl_meta["doc_items"][0].get("content_layer")
+
             documents.append(doc)
 
     return documents
@@ -74,6 +103,14 @@ if __name__ == "__main__":
     docs = load_pdf_documents()
     print(f"Loaded {len(docs)} documents from {len(set(d.metadata['file'] for d in docs))} PDFs\n")
 
-    for doc in docs[:3]:  # Show first 3 documents
-        print(f"File: {doc.metadata['file']}")
-        print(f"Content preview: {doc.page_content[:200]}...\n")
+    for i, doc in enumerate(docs[:2]):  # Show first 2 documents in detail
+        print(f"{'='*80}")
+        print(f"Document #{i+1}")
+        print(f"{'='*80}")
+        print(f"Metadata: {doc.metadata}")
+        print(f"Content length: {len(doc.page_content)} chars")
+        print(f"\nContent:\n{doc.page_content[:500]}")
+        if len(doc.page_content) > 500:
+            print(f"... [{len(doc.page_content) - 500} more chars]\n")
+        else:
+            print()
