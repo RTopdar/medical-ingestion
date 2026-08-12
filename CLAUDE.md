@@ -55,6 +55,12 @@ Only fall back to raw code reading when the graph doesn't have the answer.
 
 One additional requirement: When adding a new data type, also update [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) in the same commit. No data model should appear in code before it's in `models/` and the plan is updated.
 
+### Rule #8 - Dependency Management with uv
+
+- **New packages only:** Use `uv add <package>` to add to pyproject.toml and install.
+- **No unnecessary upgrades:** Don't upgrade existing package versions unless explicitly requested or a version conflict arises.
+- **On conflict:** If a package in pyproject.toml causes issues, update the branch (don't suppress errors).
+
 ### Rule #9 - Virtual Environment
 
 Always activate `.venv/` before running Python commands:

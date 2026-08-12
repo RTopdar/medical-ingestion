@@ -21,6 +21,7 @@ dependencies = [
     "reportlab>=5.0.0",
     "sentence-transformers>=5.7.0",
     "sqlmodel>=0.0.39",
+    "tenacity>=9.0.0",
     "tiktoken>=0.13.0",
     "unstructured>=0.25.2",
 ]

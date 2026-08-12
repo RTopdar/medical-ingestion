@@ -3,6 +3,16 @@
 Avoids re-paying OpenRouter for texts already embedded (duplicate chunks,
 re-ingestion, retries). Uses raw sqlite3, not SQLModel — single key-value
 table, no relations to model.
+
+**Thread-safe concurrent access:** WAL mode enables multiple readers/writers
+without lock contention. Each thread creates its own EmbeddingCache instance
+(new sqlite3.connect call); they share the same db_path file. WAL handles
+isolation and concurrent access safely.
+
+**Cache lifecycle:** Unbounded growth in production. Future migration to
+vector DB (hash as column, vector DB owns eviction via TTL/LRU) or
+periodic VACUUM + size-cap logic recommended. See failed_embeddings for
+persistent failures that may need eviction/retry logic separately.
 """
 
 import hashlib
@@ -19,12 +29,27 @@ class EmbeddingCache:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(self.db_path)
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.isolation_level = None
         self._conn.execute(
             """
             CREATE TABLE IF NOT EXISTS embedding_cache (
                 hash TEXT PRIMARY KEY,
                 model TEXT NOT NULL,
                 embedding TEXT NOT NULL
+            )
+            """
+        )
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS failed_embeddings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                hash TEXT,
+                text TEXT NOT NULL,
+                error TEXT NOT NULL,
+                model TEXT NOT NULL,
+                attempt_count INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
@@ -64,6 +89,41 @@ class EmbeddingCache:
             [(key, model, json.dumps(vector)) for key, vector in items.items()],
         )
         self._conn.commit()
+
+    def add_failed(self, text: str, error: str, model: str, text_hash: str | None = None) -> None:
+        """Record a failed embedding attempt for later inspection/retry."""
+        self._conn.execute(
+            """
+            INSERT INTO failed_embeddings (hash, text, error, model, attempt_count)
+            VALUES (?, ?, ?, ?, 1)
+            """,
+            (text_hash, text, error, model),
+        )
+        self._conn.commit()
+
+    def get_failed(self, limit: int = 100) -> list[dict]:
+        """Fetch recent failed embeddings for inspection or retry."""
+        rows = self._conn.execute(
+            """
+            SELECT id, hash, text, error, model, attempt_count, created_at
+            FROM failed_embeddings
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "id": row[0],
+                "hash": row[1],
+                "text": row[2],
+                "error": row[3],
+                "model": row[4],
+                "attempt_count": row[5],
+                "created_at": row[6],
+            }
+            for row in rows
+        ]
 
     def close(self) -> None:
         self._conn.close()

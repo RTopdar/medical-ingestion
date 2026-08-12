@@ -47,31 +47,20 @@ def _load_all_documents() -> list[Document]:
     from ingestion.loaders import LoaderFactory
 
     documents = []
+    sources = [
+        ("JSON", lambda: LoaderFactory.json_loader("dummy_docs").load(), FileNotFoundError),
+        ("PDF", lambda: LoaderFactory.pdf_loader("dummy_docs").load(), FileNotFoundError),
+        ("Excel/CSV", lambda: LoaderFactory.excel_csv_loader("dummy_docs").load(), FileNotFoundError),
+        ("Text", lambda: LoaderFactory.text_loader("dummy_docs").load(), FileNotFoundError),
+        # SQL raises DB-layer errors beyond a missing file, so it needs a broader catch.
+        ("SQL", lambda: LoaderFactory.sql_loader(settings.sqlite_db_path).load(), Exception),
+    ]
 
-    try:
-        documents += LoaderFactory.json_loader("dummy_docs").load()
-    except FileNotFoundError as e:
-        print(f"  ⊘ JSON: {e}")
-
-    try:
-        documents += LoaderFactory.pdf_loader("dummy_docs").load()
-    except FileNotFoundError as e:
-        print(f"  ⊘ PDF: {e}")
-
-    try:
-        documents += LoaderFactory.excel_csv_loader("dummy_docs").load()
-    except FileNotFoundError as e:
-        print(f"  ⊘ Excel/CSV: {e}")
-
-    try:
-        documents += LoaderFactory.text_loader("dummy_docs").load()
-    except FileNotFoundError as e:
-        print(f"  ⊘ Text: {e}")
-
-    try:
-        documents += LoaderFactory.sql_loader(settings.sqlite_db_path).load()
-    except Exception as e:
-        print(f"  ⊘ SQL: {e}")
+    for name, load, expected_error in sources:
+        try:
+            documents += load()
+        except expected_error as e:
+            print(f"  SKIPPED {name}: {e}")
 
     return documents
 
