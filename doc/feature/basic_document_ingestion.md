@@ -2,14 +2,14 @@
 type: Module
 title: Basic Document Ingestion (reference script)
 description: Standalone script for loading and chunking plain-text files with raw LangChain splitters.
-resource: ingestion/basic_document_ingestion.py
+resource: ingestion/loaders/individual-scripts/basic_document_ingestion.py
 tags: [ingestion, reference, standalone]
 status: stable
 ---
 
 # Basic Document Ingestion
 
-`ingestion/basic_document_ingestion.py`. Earliest reference script in the repo — works directly with `langchain_core.documents.Document` and `langchain_text_splitters`, no Pydantic models, no `models/` involvement.
+`ingestion/loaders/individual-scripts/basic_document_ingestion.py` (moved from `ingestion/basic_document_ingestion.py`). Earliest reference script in the repo — works directly with `langchain_core.documents.Document` and `langchain_text_splitters`, no Pydantic wrapping, no `models/` involvement. This was already the same output type as the production loaders even before the 2026-08-12 migration — see [Loaders](/doc/feature/loaders.md).
 
 ## Functions
 
@@ -22,4 +22,4 @@ status: stable
 
 Superseded by [Loaders](/doc/feature/loaders.md)' `TextLoaderService` + [Chunker](/doc/feature/chunker.md)'s `ChunkerService` for actual pipeline use.
 
-Run directly: `python ingestion/basic_document_ingestion.py` — chunks all files in `dummy_docs/pubmed`.
+Run directly: `python ingestion/loaders/individual-scripts/basic_document_ingestion.py` — chunks all files in `dummy_docs/pubmed`.

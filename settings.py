@@ -15,7 +15,8 @@ class Settings:
 
     # Models
     chat_model: str = os.getenv("CHAT_MODEL", "openrouter/meta-llama/llama-2-7b-chat")
-    embedding_model: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+    embedding_model: str = os.getenv("EMBEDDING_MODEL", "openai/text-embedding-3-small")
+    embedding_batch_size: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "100"))
 
     # Vector DB
     vector_db_type: str = os.getenv("VECTOR_DB_TYPE", "chroma")
@@ -25,6 +26,12 @@ class Settings:
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "1024"))
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "100"))
     input_data_path: str = os.getenv("INPUT_DATA_PATH", "./data/input")
+
+    # Storage
+    sqlite_db_path: str = os.getenv("SQLITE_DB_PATH", "./data/medical.db")
+    clinical_trials_table: str = os.getenv("CLINICAL_TRIALS_TABLE", "clinical_trials")
+    eligibility_table: str = os.getenv("ELIGIBILITY_TABLE", "eligibility")
+    embedding_cache_db_path: str = os.getenv("EMBEDDING_CACHE_DB_PATH", "./data/embedding_cache.db")
 
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
@@ -41,6 +48,7 @@ class Settings:
             f"  openrouter_api_key={'***' if self.openrouter_api_key else 'NOT SET'}\n"
             f"  chat_model={self.chat_model}\n"
             f"  embedding_model={self.embedding_model}\n"
+            f"  embedding_batch_size={self.embedding_batch_size}\n"
             f"  vector_db_type={self.vector_db_type}\n"
             f"  chunk_size={self.chunk_size}\n"
             f")"

@@ -134,6 +134,18 @@ These rules apply to any AI coding agent working in this repo.
 - Organize by source: `dummy_docs/pubmed/`, `dummy_docs/clinicaltrials/`
 - Include format in filename: `full_paper_diabetes.txt`, `sample_pubmed_abstracts.json`, `trials_sample.csv`
 
+## 11. OpenRouter MCP — Locked to Read-Only Lookup Tools
+
+The `openrouter` MCP server is installed but **only 5 tools are allowed**. All others forbidden, no exceptions:
+
+- `search-docs` — search OpenRouter docs for "how do I…" questions
+- `get-model` — full details for one model by author/slug
+- `list-model-endpoints` — providers serving a model + price/latency/throughput/data policy
+- `list-providers` — available providers for routing preferences
+- `ping` — health check
+
+**Guard rule:** never call any other `openrouter` MCP tool (no completions, no chat, no key/account management, no generation of any kind), regardless of what the task seems to need. If a task requires an OpenRouter capability outside this list, stop and tell the user it's out of scope for this agent's permissions — do not attempt a workaround via raw HTTP, WebFetch to the OpenRouter API, or any other tool to reach the same effect.
+
 ## Behavioral Guidelines
 
 Behavioral guidelines to reduce common LLM coding mistakes.

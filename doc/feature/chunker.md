@@ -1,24 +1,24 @@
 ---
 type: Module
 title: Chunker
-description: Splits Documents into Chunks for RAG using RecursiveCharacterTextSplitter.
+description: Splits langchain_core.documents.Document into smaller Documents for RAG using RecursiveCharacterTextSplitter's native split_documents().
 resource: ingestion/chunker.py
-tags: [ingestion, pydantic, rag]
+tags: [ingestion, rag]
 status: stable
 ---
 
 # Chunker
 
-`ingestion/chunker.py`. Converts `models.documents.Document` into `models.documents.Chunk` list.
+`ingestion/chunker.py`. Converts `list[langchain_core.documents.Document]` into a shorter, chunked `list[langchain_core.documents.Document]` — same type in and out (rewritten 2026-08-12; previously converted a Pydantic `Document` into a Pydantic `Chunk`, see [Data Models](/doc/feature/models.md)).
 
 ## Components
 
-- `ChunkerConfig` — `chunk_size` and `chunk_overlap`, both default from `settings.py` (`settings.chunk_size`, `settings.chunk_overlap`), not hardcoded.
-- `ChunkerService.chunk(documents)` — wraps `langchain_text_splitters.RecursiveCharacterTextSplitter`. Recomputes `start_idx`/`end_idx` against the original document content (`str.find`, walking forward from `char_pos` to avoid false matches on repeated substrings). Copies parent `Metadata` onto each chunk, appends `"chunk"` tag, adds `parent_title` to `extra`.
+- `ChunkerConfig` — `chunk_size` and `chunk_overlap`, both default from `settings.py` (`settings.chunk_size`, `settings.chunk_overlap`), not hardcoded. Unchanged by the 2026-08-12 rewrite.
+- `ChunkerService.chunk(documents)` — wraps `langchain_text_splitters.RecursiveCharacterTextSplitter(chunk_size=..., chunk_overlap=..., add_start_index=True)` and calls its native `split_documents(documents)` — one line. This splits `page_content`, propagates each source document's `metadata` dict onto every resulting chunk, and (via `add_start_index=True`) adds `metadata["start_index"]` itself. The previous manual `str.find()`-based `start_idx`/`end_idx` reconstruction and hand-copied `Metadata` are gone — LangChain's splitter now does both natively.
 
 ## Data flow
 
-[Loaders](/doc/feature/loaders.md) → `Document` → `ChunkerService.chunk()` → `Chunk`.
+[Loaders](/doc/feature/loaders.md) → `Document` → `ChunkerService.chunk()` → `Document` (chunked, smaller `page_content`, `metadata["start_index"]` added).
 
 ## Callers
 
@@ -26,4 +26,4 @@ status: stable
 
 ## Note
 
-`ChunkerConfig` has no `separators` field and there is no `RecursiveChunker` class — only `ChunkerService`. A caller using either will raise at construction/import time.
+`ChunkerConfig` has no `separators` field and there is no `RecursiveChunker` class — only `ChunkerService`. A caller using either will raise at construction/import time. (Still accurate after the 2026-08-12 rewrite — `ChunkerConfig` itself did not change, only `ChunkerService.chunk()`'s internals and its input/output type.)

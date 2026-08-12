@@ -2,14 +2,14 @@
 type: Module
 title: PMC JSON Converter
 description: Fetches PMC papers and writes them as structured JSON matching JSONLoaderService's expected schema.
-resource: ingestion/pmc_json_converter.py
+resource: ingestion/loaders/individual-scripts/pmc_json_converter.py
 tags: [ingestion, external-api, pubmed, json]
 status: stable
 ---
 
 # PMC JSON Converter
 
-`ingestion/pmc_json_converter.py`. Production data-fetch path — same PMC E-utilities API as [PMC Fetcher](/doc/feature/pmc_fetcher.md), but outputs one structured JSON file instead of per-paper `.txt` files.
+`ingestion/loaders/individual-scripts/pmc_json_converter.py` (moved from `ingestion/pmc_json_converter.py`). Production data-fetch path — same PMC E-utilities API as [PMC Fetcher](/doc/feature/pmc_fetcher.md), but outputs one structured JSON file instead of per-paper `.txt` files.
 
 ## Functions
 
@@ -20,7 +20,7 @@ status: stable
 
 ## CLI
 
-`python ingestion/pmc_json_converter.py "<query>" [count]`
+`python ingestion/loaders/individual-scripts/pmc_json_converter.py "<query>" [count]`
 
 ## Data flow
 

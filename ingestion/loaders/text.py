@@ -1,13 +1,12 @@
-import uuid
-
 from pydantic import BaseModel
+from langchain_core.documents import Document
 
-from models.documents import Document, Metadata
 from ingestion.loaders.base import LoaderConfig
 
 
 class TextLoaderService(BaseModel):
-    """Load plain text files and convert to Pydantic Documents."""
+    """Load plain text files and return LangChain Documents."""
+
     config: LoaderConfig
 
     class Config:
@@ -24,19 +23,13 @@ class TextLoaderService(BaseModel):
             with open(txt_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            metadata = Metadata(
-                source=str(txt_path),
-                source_type="txt",
-                tags=["text", txt_path.stem],
-                extra={},
-            )
+            metadata = {
+                "source": str(txt_path),
+                "source_type": "txt",
+                "title": txt_path.stem,
+                "tags": ["text", txt_path.stem],
+            }
 
-            doc = Document(
-                id=str(uuid.uuid4()),
-                content=content,
-                title=txt_path.stem,
-                metadata=metadata,
-            )
-            documents.append(doc)
+            documents.append(Document(page_content=content, metadata=metadata))
 
         return documents

@@ -1,14 +1,16 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
-
-from models.documents import Chunk
+from langchain_core.documents import Document
 
 
 class RetrievedContext(BaseModel):
-    chunk: Chunk
+    chunk: Document
     similarity_score: float = Field(..., ge=0.0, le=1.0, description="Similarity score (0-1)")
     rank: int = Field(..., description="Rank in retrieval results")
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class RAGQuery(BaseModel):

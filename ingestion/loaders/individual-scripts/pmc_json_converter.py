@@ -76,14 +76,18 @@ def fetch_pmc_full_text(pmcid: str) -> dict:
             given_names = name_elem.findtext("given-names", "")
             aff_elem = contrib.find(".//aff")
             affiliation = aff_elem.text if aff_elem is not None else ""
-            authors.append({
-                "name": f"{given_names} {surname}".strip(),
-                "affiliation": affiliation,
-                "role": "author"
-            })
+            authors.append(
+                {
+                    "name": f"{given_names} {surname}".strip(),
+                    "affiliation": affiliation,
+                    "role": "author",
+                }
+            )
 
     # Extract publication date
-    pub_date_elem = root.find(".//pub-date[@pub-type='epub']") or root.find(".//pub-date[@pub-type='ppub']")
+    pub_date_elem = root.find(".//pub-date[@pub-type='epub']") or root.find(
+        ".//pub-date[@pub-type='ppub']"
+    )
     pub_date = None
     if pub_date_elem is not None:
         year = pub_date_elem.findtext("year")
@@ -141,7 +145,7 @@ def papers_to_json(papers: list[dict], output_path: Path) -> str:
                 "type": "pubmed_central",
                 "pmcid": paper["pmcid"],
                 "url": f"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC{paper['pmcid']}/",
-                "accessed_at": datetime.now(timezone.utc).isoformat() + "Z"
+                "accessed_at": datetime.now(timezone.utc).isoformat() + "Z",
             },
             "publication_info": {
                 "title": paper["title"],
@@ -154,7 +158,14 @@ def papers_to_json(papers: list[dict], output_path: Path) -> str:
             "article_metadata": {
                 "abstract": paper["abstract"],
                 "keywords": paper["keywords"],
-                "article_sections": ["abstract", "introduction", "methods", "results", "discussion", "conclusion"]
+                "article_sections": [
+                    "abstract",
+                    "introduction",
+                    "methods",
+                    "results",
+                    "discussion",
+                    "conclusion",
+                ],
             },
             "authors": paper["authors"],
             "research_data": {

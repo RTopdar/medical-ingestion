@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class LoaderConfig(BaseModel):
     """Configuration for document loaders."""
+
     source_dir: Path = Field(..., description="Directory containing source files")
     clean_text: bool = Field(default=True, description="Apply text cleaning")
 

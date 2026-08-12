@@ -1,15 +1,15 @@
 import json
-import uuid
 from pathlib import Path
 
 from pydantic import BaseModel
+from langchain_core.documents import Document
 
-from models.documents import Document, Metadata
 from ingestion.loaders.base import LoaderConfig, clean_text
 
 
 class JSONLoaderService(BaseModel):
     """Load JSON files with complex nested metadata extraction."""
+
     config: LoaderConfig
 
     class Config:
@@ -51,79 +51,71 @@ class JSONLoaderService(BaseModel):
                 content = clean_text(content)
 
             title = item.get("title") or item.get("id") or item.get("name", "Untitled")
-            doc_id = item.get("id", str(uuid.uuid4()))
+            doc_id = item.get("id", "")
 
             flat_metadata = self._flatten_metadata(item)
 
-            extra = {
+            metadata = {
+                "source": str(json_path),
+                "source_type": "json",
+                "title": title,
+                "id": doc_id,
                 "document_type": item.get("document_type", "json"),
                 "raw_json_keys": list(item.keys()),
                 "nested_metadata": flat_metadata,
             }
 
             if "patient_info" in item:
-                extra["patient_mrn"] = item["patient_info"].get("mrn")
-                extra["patient_name"] = item["patient_info"].get("name")
-                extra["patient_age"] = item["patient_info"].get("age")
+                metadata["patient_mrn"] = item["patient_info"].get("mrn")
+                metadata["patient_name"] = item["patient_info"].get("name")
+                metadata["patient_age"] = item["patient_info"].get("age")
 
             if "clinical_data" in item:
-                extra["diagnoses"] = [
+                metadata["diagnoses"] = [
                     d.get("description") for d in item["clinical_data"].get("diagnoses", [])
                 ]
-                extra["medications"] = [
+                metadata["medications"] = [
                     m.get("name") for m in item["clinical_data"].get("medications", [])
                 ]
 
             if "provider" in item:
-                extra["provider_name"] = item["provider"].get("name")
-                extra["provider_specialty"] = item["provider"].get("specialty")
+                metadata["provider_name"] = item["provider"].get("name")
+                metadata["provider_specialty"] = item["provider"].get("specialty")
 
             if "surgical_data" in item:
-                extra["procedure"] = item["surgical_data"].get("procedure")
-                extra["surgeon"] = item["surgical_data"].get("surgical_team", {}).get("surgeon")
+                metadata["procedure"] = item["surgical_data"].get("procedure")
+                metadata["surgeon"] = item["surgical_data"].get("surgical_team", {}).get("surgeon")
 
             if "publication_info" in item:
                 pub = item["publication_info"]
-                extra["journal"] = pub.get("journal")
-                extra["publication_date"] = pub.get("publication_date")
-                extra["volume"] = pub.get("volume")
-                extra["issue"] = pub.get("issue")
+                metadata["journal"] = pub.get("journal")
+                metadata["publication_date"] = pub.get("publication_date")
+                metadata["volume"] = pub.get("volume")
+                metadata["issue"] = pub.get("issue")
 
             if "authors" in item:
-                extra["authors"] = [a.get("name") for a in item["authors"]]
-                extra["author_affiliations"] = [
+                metadata["authors"] = [a.get("name") for a in item["authors"]]
+                metadata["author_affiliations"] = [
                     a.get("affiliation") for a in item["authors"] if a.get("affiliation")
                 ]
 
             if "article_metadata" in item:
-                extra["keywords"] = item["article_metadata"].get("keywords", [])
+                metadata["keywords"] = item["article_metadata"].get("keywords", [])
 
             if "research_data" in item:
-                extra["study_type"] = item["research_data"].get("study_type")
-                extra["sample_size"] = item["research_data"].get("sample_size")
+                metadata["study_type"] = item["research_data"].get("study_type")
+                metadata["sample_size"] = item["research_data"].get("sample_size")
 
             if "source" in item and isinstance(item["source"], dict):
-                extra["external_source_type"] = item["source"].get("type")
-                extra["external_source_url"] = item["source"].get("url")
+                metadata["external_source_type"] = item["source"].get("type")
+                metadata["external_source_url"] = item["source"].get("url")
 
             tags = item.get("tags", [])
             if not tags:
                 tags = [item.get("document_type", "json"), json_path.stem]
+            metadata["tags"] = tags
 
-            metadata = Metadata(
-                source=str(json_path),
-                source_type="json",
-                tags=tags,
-                extra=extra,
-            )
-
-            doc = Document(
-                id=doc_id,
-                content=content,
-                title=title,
-                metadata=metadata,
-            )
-            documents.append(doc)
+            documents.append(Document(page_content=content, metadata=metadata))
 
         return documents
 
@@ -138,9 +130,7 @@ class JSONLoaderService(BaseModel):
             new_key = f"{parent_key}{sep}{k}" if parent_key else k
 
             if isinstance(v, dict):
-                items.extend(
-                    JSONLoaderService._flatten_metadata(v, new_key, sep).items()
-                )
+                items.extend(JSONLoaderService._flatten_metadata(v, new_key, sep).items())
             elif isinstance(v, list):
                 if v and isinstance(v[0], dict):
                     items.append((new_key, json.dumps(v)))

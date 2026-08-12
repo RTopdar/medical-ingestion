@@ -2,14 +2,14 @@
 type: Module
 title: PMC Fetcher
 description: Fetches full-text papers from PubMed Central and saves them as plain-text files.
-resource: ingestion/pmc_fetcher.py
+resource: ingestion/loaders/individual-scripts/pmc_fetcher.py
 tags: [ingestion, external-api, pubmed]
 status: stable
 ---
 
 # PMC Fetcher
 
-`ingestion/pmc_fetcher.py`. Earlier/simpler sibling of [PMC JSON Converter](/doc/feature/pmc_json_converter.md) — outputs flat `.txt` files instead of structured JSON.
+`ingestion/loaders/individual-scripts/pmc_fetcher.py` (moved from `ingestion/pmc_fetcher.py`). Earlier/simpler sibling of [PMC JSON Converter](/doc/feature/pmc_json_converter.md) — outputs flat `.txt` files instead of structured JSON.
 
 ## Functions
 
@@ -24,8 +24,8 @@ status: stable
 
 ## CLI
 
-`python ingestion/pmc_fetcher.py "<query>" [count]`
+`python ingestion/loaders/individual-scripts/pmc_fetcher.py "<query>" [count]`
 
 ## Consumers
 
-Output `.txt` files can be read by `ingestion/basic_document_ingestion.py::load_single_dummy_pubmed` — see [Basic Document Ingestion](/doc/feature/basic_document_ingestion.md).
+Output `.txt` files can be read by `basic_document_ingestion.py::load_single_dummy_pubmed` — see [Basic Document Ingestion](/doc/feature/basic_document_ingestion.md).

@@ -7,9 +7,10 @@ from pathlib import Path
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from langchain_core.documents import Document
+
 from ingestion.loaders import LoaderFactory
 from ingestion.chunker import ChunkerConfig, ChunkerService
-from models.documents import Document
 
 
 def ingest_json_documents(data_dir: str | Path = "dummy_docs") -> list[Document]:
@@ -22,12 +23,11 @@ def ingest_json_documents(data_dir: str | Path = "dummy_docs") -> list[Document]
     # Print metadata preview
     for doc in docs[:1]:
         print(f"\n  Sample document:")
-        print(f"    ID: {doc.id}")
-        print(f"    Title: {doc.title}")
-        print(f"    Content length: {len(doc.content)} chars")
-        print(f"    Metadata keys: {list(doc.metadata.extra.keys())}")
-        if "nested_metadata" in doc.metadata.extra:
-            nested = doc.metadata.extra["nested_metadata"]
+        print(f"    Title: {doc.metadata.get('title')}")
+        print(f"    Content length: {len(doc.page_content)} chars")
+        print(f"    Metadata keys: {list(doc.metadata.keys())}")
+        if "nested_metadata" in doc.metadata:
+            nested = doc.metadata["nested_metadata"]
             print(f"    Flattened metadata sample:")
             for k in list(nested.keys())[:5]:
                 print(f"      - {k}: {str(nested[k])[:50]}...")
@@ -61,7 +61,7 @@ def ingest_csv_excel_documents(data_dir: str | Path = "data/csv") -> list[Docume
         return []
 
 
-def chunk_documents(documents: list[Document]) -> list:
+def chunk_documents(documents: list[Document]) -> list[Document]:
     """Chunk documents for RAG."""
     print(f"\nChunking {len(documents)} documents...")
     config = ChunkerConfig(chunk_size=512, chunk_overlap=100)
@@ -99,7 +99,7 @@ def main():
     print(f"\nIngestion Summary:")
     print(f"  Documents: {len(all_documents)}")
     print(f"  Chunks: {len(chunks)}")
-    print(f"  Avg chunk size: {sum(len(c.content) for c in chunks) // len(chunks)} chars")
+    print(f"  Avg chunk size: {sum(len(c.page_content) for c in chunks) // len(chunks)} chars")
 
     return all_documents, chunks
 

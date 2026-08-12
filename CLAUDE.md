@@ -4,7 +4,7 @@ Project-specific instructions for Claude Code. Extends [AGENTS.md](AGENTS.md) wi
 
 ## Core Rules
 
-Follow **all 10 rules + Behavioral Guidelines** in [AGENTS.md](AGENTS.md). This file documents Claude Code-specific implementations only.
+Follow **all 11 rules + Behavioral Guidelines** in [AGENTS.md](AGENTS.md). This file documents Claude Code-specific implementations only.
 
 ## Claude Code-Specific Overrides
 
@@ -64,6 +64,10 @@ source .venv/bin/activate
 ```
 
 Verify: prompt shows `(.venv)` prefix or `which python` returns `.venv/...`
+
+### Rule #11 - OpenRouter MCP Guard
+
+`openrouter` MCP server: **only** `search-docs`, `get-model`, `list-model-endpoints`, `list-providers`, `ping` allowed. No other tool from this server may be called under any circumstance — no completions/generation/account actions. If a task seems to need more, stop and tell user it's out of scope; do not route around via WebFetch or raw HTTP to OpenRouter's API.
 
 ---
 
