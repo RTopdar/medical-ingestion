@@ -23,6 +23,10 @@ Learning project for vector data ingestion, parsing, RAG, and DB connections. Fo
 5. **RAG** — Retriever + Generator orchestration
 6. **Storage** — Relational DB connectors for metadata/context
 
+## Coding Conventions
+
+- **500-line file cap:** No `.py` file exceeds 500 lines (AGENTS.md rule #7). Crossing the cap signals a module doing too many things — split by responsibility into a subpackage, DRY shared logic into a base module, and re-export from `__init__.py` so callers' import paths don't change. Reference implementation: `ingestion/loaders/` (see Components below).
+
 ## Components
 
 ### 1. settings.py
@@ -48,7 +52,7 @@ Learning project for vector data ingestion, parsing, RAG, and DB connections. Fo
 - **Purpose:** Extract, parse, and chunk documents from multiple source formats into Pydantic `Document`/`Chunk` objects
 - **Status:** ✓ Created (PDF, Excel/CSV, JSON, chunking)
 - **Key files:**
-  - `ingestion/loaders.py` — `LoaderFactory` + Pydantic-based loader services: `PDFLoaderService` (Docling), `TextLoaderService`, `ExcelCSVLoaderService` (Unstructured), `JSONLoaderService` (nested metadata flattening + common-field content extraction for clinical/research JSON). All return `models.documents.Document` objects.
+  - `ingestion/loaders/` — package (split from a single `loaders.py` under the 500-line file cap, see rule below): `LoaderFactory` + Pydantic-based loader services: `PDFLoaderService` (Docling), `TextLoaderService`, `ExcelCSVLoaderService` (Unstructured), `JSONLoaderService` (nested metadata flattening + common-field content extraction for clinical/research JSON). All return `models.documents.Document` objects. Public API unchanged — `from ingestion.loaders import LoaderFactory` still works via `__init__.py` re-exports. File-by-file breakdown: [doc/feature/loaders.md](doc/feature/loaders.md).
   - `ingestion/chunker.py` — `ChunkerService` + `ChunkerConfig`. Splits `Document`s into `Chunk`s via `RecursiveCharacterTextSplitter`, preserving parent metadata. `chunk_size`/`chunk_overlap` now default from `settings.chunk_size`/`settings.chunk_overlap` (previously hardcoded) — single source of truth for chunk sizing is `.env`/`settings.py`.
   - `ingestion/pdf_extraction.py` — standalone LangChain-`Document`-based PDF loader (Docling), independent of the Pydantic loader stack. Demo/reference script, not used by `scripts/ingest_documents.py`.
   - `ingestion/json_extraction.py` — standalone LangChain-`Document`-based JSON loader, same relationship to `JSONLoaderService` as `pdf_extraction.py` has to `PDFLoaderService` (simpler, non-Pydantic reference implementation).
@@ -125,6 +129,7 @@ Retrieval architecture decisions from design discussion, deferred until core pip
 
 ## Changelog
 
+- 2026-08-12: doc-sync — added Coding Conventions section documenting the 500-line file cap (AGENTS.md rule #7); updated `ingestion/loaders.py` reference to `ingestion/loaders/` package (base.py, pdf.py, text.py, excel_csv.py, json_loader.py, factory.py, __init__.py), pointing to `doc/feature/loaders.md` for file-by-file detail instead of duplicating it; fixed stale `ingestion/loaders.py` reference in `doc/feature/index.md`.
 - 2026-08-12: doc-sync — documented JSON ingestion path (`ingestion/json_extraction.py`, `ingestion/pmc_json_converter.py`, `JSONLoaderService`), `scripts/ingest_documents.py` pipeline entry point, and settings-driven chunker config (`ChunkerConfig` now reads `chunk_size`/`chunk_overlap` from `settings.py` instead of hardcoded defaults). Moved 2 settled decisions from Open Decisions to Architecture. Flagged a real code inconsistency in `scripts/ingest_documents.py` (references `RecursiveChunker`/`separators` that don't exist in `ingestion/chunker.py`) for follow-up.
 - 2026-08-11: Documented deferred retrieval architecture (chunking, hybrid+rerank, metadata auto-discovery incl. worst-case messy-data strategy, NER, RAPTOR) — see Future Enhancements section.
 - 2026-08-11: Pydantic models layer — Document, Chunk, Vector, RAGQuery/Response contracts. Added Pydantic-first rule to CLAUDE.md.

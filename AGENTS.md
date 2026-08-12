@@ -121,7 +121,7 @@ These rules apply to any AI coding agent working in this repo.
 3. Combine results: metadata (PubMed) + body text (PMC) in single ingestion record
 4. Fall back to abstract-only for non-open-access papers
 
-**Implementation:** `ingestion/pmc_json_converter.py` implements this strategy — searches PMC via E-utilities, fetches full-text XML, and writes structured JSON (`dummy_docs/pmc_documents.json`) matching the schema `JSONLoaderService` (`ingestion/loaders.py`) expects.
+**Implementation:** `ingestion/pmc_json_converter.py` implements this strategy — searches PMC via E-utilities, fetches full-text XML, and writes structured JSON (`dummy_docs/pmc_documents.json`) matching the schema `JSONLoaderService` (`ingestion/loaders/json_loader.py`) expects.
 
 **When user requests dummy/sample data:**
 

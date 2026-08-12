@@ -11,7 +11,7 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 
 ## Concepts
 
-- [Loaders](/doc/feature/loaders.md) — `ingestion/loaders.py`, source-format ingestion (PDF, Excel/CSV, JSON)
+- [Loaders](/doc/feature/loaders.md) — `ingestion/loaders/`, source-format ingestion package (PDF, Excel/CSV, JSON)
 - [Chunker](/doc/feature/chunker.md) — `ingestion/chunker.py`, Document → Chunk splitting
 - [PDF Extraction](/doc/feature/pdf_extraction.md) — `ingestion/pdf_extraction.py`, standalone Docling-based reference script
 - [JSON Extraction](/doc/feature/json_extraction.md) — `ingestion/json_extraction.py`, standalone LangChain-Document reference script
