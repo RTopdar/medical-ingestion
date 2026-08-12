@@ -4,7 +4,7 @@ Project-specific instructions for Claude Code. Extends [AGENTS.md](AGENTS.md) wi
 
 ## Core Rules
 
-Follow **all 9 rules + Behavioral Guidelines** in [AGENTS.md](AGENTS.md). This file documents Claude Code-specific implementations only.
+Follow **all 10 rules + Behavioral Guidelines** in [AGENTS.md](AGENTS.md). This file documents Claude Code-specific implementations only.
 
 ## Claude Code-Specific Overrides
 
@@ -55,7 +55,7 @@ Only fall back to raw code reading when the graph doesn't have the answer.
 
 One additional requirement: When adding a new data type, also update [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) in the same commit. No data model should appear in code before it's in `models/` and the plan is updated.
 
-### Rule #8 - Virtual Environment
+### Rule #9 - Virtual Environment
 
 Always activate `.venv/` before running Python commands:
 

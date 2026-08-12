@@ -74,14 +74,28 @@ These rules apply to any AI coding agent working in this repo.
 - **Enforcement:** Every module imports from `models.*`. Never define data classes in feature modules.
 - **Update contract:** When adding a new data type, add its Pydantic model to the appropriate file in `models/` and update [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) in the same commit. No data model should appear in code before it's in `models/`.
 
-## 7. LangChain — Always Consult MCP Docs First
+## 7. 500-Line File Limit — Hard Cap
+
+- **No code file exceeds 500 lines.** Applies to every `.py` file, no exceptions.
+- **A file crossing 500 lines is not a "trim it" problem — it's a "this module has too many responsibilities" problem.** Split by responsibility, not by cutting arbitrarily in half.
+- **Before adding to a file that's already near 500 lines** (i.e. an addition would push it over, or it's already within ~50 lines of the cap): stop, look at the module's actual responsibilities, and split first. Don't write past the cap and clean up after.
+- **How to split:**
+  - Group by responsibility (e.g. one loader class per file, not all loaders in one `loaders.py`).
+  - Use subpackages when a group of files shares a domain — e.g. `ingestion/loaders/` as a package (`__init__.py` re-exporting `LoaderFactory`, plus `pdf.py`, `json_loader.py`, `excel_csv.py`, `text.py`, `base.py` for shared `LoaderConfig`).
+  - Keep the public interface stable: callers doing `from ingestion.loaders import LoaderFactory` shouldn't need to change when the file splits into a package — re-export from `__init__.py`.
+  - Apply DRY: shared logic (e.g. `_clean_text`, repeated across loader classes today) moves to a shared base/util module during the split, not copy-pasted into each new file.
+- **Example:** `ingestion/loaders.py` was split into `ingestion/loaders/` (`base.py`, `pdf.py`, `text.py`, `excel_csv.py`, `json_loader.py`, `factory.py`, `__init__.py` re-exporting `LoaderFactory` and all services) at 439 lines, before it crossed the cap — this is the reference pattern for future splits.
+- **Check architecture before adding new code.** Before writing a new class/function, check the relevant `doc/feature/` concept doc (rule #2) and current file line count. If the natural home for new code is a file near/over the cap, split as part of that change — don't defer it.
+- **Non-code files** (docs, config, data) are not subject to this cap — see rule #2 for `doc/` file-size philosophy (small OKF concept docs), which is a similar principle applied differently.
+
+## 8. LangChain — Always Consult MCP Docs First
 
 - Whenever you encounter or need to generate **any LangChain code**, query the `docs-langchain` MCP server first.
 - **Why:** LangChain APIs evolve; MCP docs are authoritative and current. Prevents writing deprecated or incorrect patterns.
 - **Scope:** All `langchain*` packages — imports, class usage, chains, retrievers, agents, memory, callbacks, loaders, embeddings, vector stores.
 - **Execution:** Use the MCP server or WebFetch to read current docs before writing code. Cite the doc link in comments if the pattern is non-obvious.
 
-## 8. Virtual Environment — Always Activate First
+## 9. Virtual Environment — Always Activate First
 
 - **Before running any Python command, check for and activate the virtual environment.**
 - Look for `.venv/` directory in project root.
@@ -90,7 +104,7 @@ These rules apply to any AI coding agent working in this repo.
 - This applies to: `python`, `pip`, `pytest`, `uv run`, or any Python-based CLI tools
 - **Never run naked Python commands** — always activate first to ensure correct dependencies and isolation
 
-## 9. Medical Data Sources — API Integration
+## 10. Medical Data Sources — API Integration
 
 **Primary free APIs for medical/clinical data:**
 
