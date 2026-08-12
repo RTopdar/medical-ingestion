@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 class Metadata(BaseModel):
     source: str = Field(..., description="Document source (file path, URL, etc.)")
     source_type: str = Field(..., description="Type of source (pdf, txt, web, db)")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tags: list[str] = Field(default_factory=list)
     extra: dict = Field(default_factory=dict, description="Custom metadata")
 

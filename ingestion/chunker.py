@@ -4,23 +4,27 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from settings import settings
+
 from models.documents import Document, Chunk, Metadata
 
 
 class ChunkerConfig(BaseModel):
     """Configuration for text chunking."""
+
     chunk_size: int = Field(
-        default=800,
+        default=settings.chunk_size,
         description="Target chunk size in characters (400-800 per spec)",
     )
     chunk_overlap: int = Field(
-        default=150,
+        default=settings.chunk_overlap,
         description="Overlap between chunks in characters (100-200 per spec)",
     )
 
 
 class ChunkerService(BaseModel):
     """Convert Documents to Chunks using configurable strategy."""
+
     config: ChunkerConfig = Field(default_factory=ChunkerConfig)
 
     class Config:
