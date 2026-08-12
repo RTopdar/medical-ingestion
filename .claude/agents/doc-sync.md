@@ -1,6 +1,6 @@
 ---
 name: doc-sync
-description: Keeps technical docs in sync with codebase. Scans git diff for changes, updates IMPLEMENTATION_PLAN.md, validates architecture stays documented, flags when code and docs drift.
+description: Keeps technical docs in sync with codebase. Scans git diff for changes, updates IMPLEMENTATION_PLAN.md and the doc/feature/ OKF bundle, validates architecture stays documented, flags when code and docs drift.
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: inherit
 ---
@@ -24,21 +24,26 @@ Use this agent:
 
 2. **Check against docs.**
    - Read `IMPLEMENTATION_PLAN.md`.
+   - Read `doc/feature/index.md` and its linked concept docs.
    - Read `.claude/agents/*.md` to verify agent list is current.
    - Identify gaps:
      - New modules/services not listed in Components?
      - New major files/patterns not in Architecture section?
      - New agents created but not mentioned in AGENTS.md?
      - Decisions made in code but not in Open Decisions or Architecture?
+     - New modules with no corresponding `doc/feature/*.md` concept doc, or concept docs describing deleted/renamed code?
 
 3. **Update docs.**
    - **IMPLEMENTATION_PLAN.md**: Add new modules to Components, move settled decisions from Open Decisions → Architecture, update Status if project state changed.
+   - **doc/feature/**: This is the project's self-healing OKF architecture bundle. For each new module/service/script, add one small concept doc (`type`, `title`, `description`, `resource`, `tags`, `status` frontmatter — see any existing file under `doc/feature/` for the pattern) and link it from `doc/feature/index.md`. For removed code, delete or mark the concept doc `status: deprecated`. For changed code, update the existing concept doc rather than creating a new one. Keep each file to one concept — do not merge multiple modules into one doc.
    - **.claude/agents/*.md**: If new agent files exist (`.claude/agents/NAME.md`), ensure AGENTS.md rule #3 or a new section covers it.
    - **CLAUDE.md**: If major behavioral guidelines were established, add them (rare — only if consistent pattern emerged from code).
+   - Never touch `doc/bug/` — that subtree belongs to `incident-handler` only.
 
 4. **Validate.**
    - Cross-check: do all listed components actually exist in the codebase?
    - Do all agents mentioned in docs have corresponding `.md` files?
+   - Does `doc/feature/index.md` link every file present under `doc/feature/`, and no dead links to removed ones? Does `doc/index.md` still correctly point at both `doc/feature/index.md` and `doc/bug/index.md`?
    - Any pre-existing dead code or obsolete modules still listed? Flag for user to remove.
 
 5. **Report.**

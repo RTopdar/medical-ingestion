@@ -18,7 +18,7 @@ subagent_type: "incident-handler"
 
 Agent specification: `.claude/agents/incident-handler.md`
 
-Full cycle: check `doc/INDEX.md` → investigate if needed → fix → write incident doc → update index → relay summary back.
+Full cycle: check `doc/bug/INDEX.md` → investigate if needed → fix → write incident doc → update index → relay summary back.
 
 ### Rule #4 - Doc-Sync Agent for Self-Healing Documentation
 
@@ -30,7 +30,9 @@ subagent_type: "doc-sync"
 
 Agent specification: `.claude/agents/doc-sync.md`
 
-Scans git diff for new modules/services/agents/decisions and updates `IMPLEMENTATION_PLAN.md` and `AGENTS.md` to match code.
+Scans git diff for new modules/services/agents/decisions and updates `IMPLEMENTATION_PLAN.md`, `AGENTS.md`, and the `doc/feature/` OKF bundle to match code.
+
+**Self-healing doc structure:** `doc/` has two independent subtrees — `doc/bug/` (incident index + incident files, owned by `incident-handler`) and `doc/feature/` (OKF v0.2 architecture bundle, one small concept file per module, owned by `doc-sync`). Each concept doc under `doc/feature/` has YAML frontmatter (`type`, `title`, `description`, `resource`, `tags`, `status`) and cross-links to related concepts via bundle-relative markdown links. `doc/feature/index.md` is the bundle index — always kept current with every concept doc it links to. See AGENTS.md rule #2 for the full spec and rule #4 for the update contract.
 
 ### Rule #5 - Knowledge Graph Before Code
 

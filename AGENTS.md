@@ -8,35 +8,60 @@ These rules apply to any AI coding agent working in this repo.
 - Update it every time something new is added (module, service, dependency, major decision). Treat drift between this file and the actual code as a bug.
 - Before starting non-trivial work, read this file first.
 
-## 2. Bug/Issue Handling via `doc/`
+## 2. `doc/` Structure — Two OKF Bundles + Index of Indexes
 
-- [doc/INDEX.md](doc/INDEX.md) is the incident index. Every incident gets an ID (`INC-XXX`) and a one-line summary in the index table, plus its own file under `doc/incidents/`.
+`doc/` holds two independent **OKF (Open Knowledge Format v0.2) bundles**. Never mix their content:
+
+- **`doc/bug/`** — incidents. [doc/bug/index.md](doc/bug/index.md) is the bundle index; each incident gets its own OKF concept file under `doc/bug/incidents/`.
+- **`doc/feature/`** — architecture. [doc/feature/index.md](doc/feature/index.md) is the bundle index; each concept (module, service, script) gets its own small OKF file under `doc/feature/`.
+- **[doc/index.md](doc/index.md)** — index of indexes. Points to both bundle indexes above and holds no content of its own. Read this first when you don't already know which bundle is relevant.
+
+### OKF format (applies to both bundles)
+
+- Every `.md` file (except reserved `index.md`/`log.md`) has YAML frontmatter with at minimum a `type` field (`Module`, `Bundle Index`, `Incident`, etc.); recommended fields: `title`, `description`, `resource` (path to the source file it documents/affects), `tags`, `status`.
+- **One concept per file, kept small.** A module, script, or incident gets its own doc — never bundle multiple concepts into one large file. This keeps each doc independently fetchable: an agent pulls exactly the one file relevant to its question, not the whole bundle.
+- Cross-link concepts with bundle-relative markdown links (`[Chunker](/doc/feature/chunker.md)`), not prose descriptions of "see the chunker file." Bug docs link to the feature docs they affect, and vice versa when relevant.
+- Each bundle's `index.md` lists and links every concept doc in it — update it whenever a concept doc is added or removed.
+- Reference: [Google Cloud OKF spec](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md).
+
+### Mandatory: read before you write
+
+**Before suggesting or making any change to a module, check its `doc/feature/` concept doc (and `doc/bug/index.md` for prior incidents in that area) first.** This is not optional research — it's how you get context on what the current implementation is actually meant to do before touching it. If no concept doc exists yet for the module, that's a signal docs have drifted (flag it / delegate to `doc-sync`), not a reason to skip the check.
+
+### Bug/Issue Handling (`doc/bug/`)
+
 - **When a new problem is reported:**
-  1. Check `doc/INDEX.md` first for a matching or related incident. If a resolution already exists, apply/reference it — do not re-derive from scratch.
-  2. If nothing matches, only then investigate the codebase, fix it, and create a new incident file.
-- **Each incident file must contain:**
+  1. Check `doc/bug/index.md` first for a matching or related incident. If a resolution already exists, apply/reference it — do not re-derive from scratch.
+  2. Also check the relevant `doc/feature/` concept doc for the affected module, per "Mandatory: read before you write" above.
+  3. If nothing matches, only then investigate the codebase, fix it, and create a new incident file.
+- **Each incident file** (`doc/bug/incidents/INC-XXX-short-slug.md`) must contain:
   - Root cause
   - Resolution method
   - Final status: resolved or not resolved
 - **When a new bug/issue is introduced** (by us or discovered as a side effect), it also gets logged in the index, not just fixes.
-- Keep `doc/INDEX.md` continuously up to date — it's the source of truth for "has this happened before."
+- Keep `doc/bug/index.md` continuously up to date — it's the source of truth for "has this happened before."
 
 ## 3. Dedicated Agent for Bug Handling
 
-- Rule #2 (checking the index, investigating, writing up root cause/resolution, updating the index) should be delegated to a dedicated subagent rather than done inline in the main thread. Reason: dedicated agent stays focused on just this task, won't drop steps over a long session.
+- Rule #2's bug-handling flow (checking `doc/bug/index.md`, investigating, writing up root cause/resolution, updating the index) should be delegated to a dedicated subagent rather than done inline in the main thread. Reason: dedicated agent stays focused on just this task, won't drop steps over a long session.
 - Main thread's job: receive the problem report, hand it to the `incident-handler` subagent (`.claude/agents/incident-handler.md`), relay the result.
 
 ## 4. Doc-Sync Agent for Architecture Documentation
 
-- Keep [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and [AGENTS.md](AGENTS.md) in sync with the actual codebase.
+- Keep [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [AGENTS.md](AGENTS.md), and the [doc/feature/](doc/feature/index.md) OKF bundle in sync with the actual codebase.
 - When code changes introduce new modules, services, major decisions, or agents, delegate to the `doc-sync` subagent (`.claude/agents/doc-sync.md`) to scan diffs and update docs.
-- Doc-sync ensures architecture docs never drift from reality — treat code as source of truth, docs as the reflection.
+- Doc-sync ensures architecture docs never drift from reality — treat code as source of truth, docs as the reflection. This is the project's **self-healing documentation** mechanism: docs are expected to auto-correct after every significant change rather than decay silently.
+- **Self-healing scope**: doc-sync updates `IMPLEMENTATION_PLAN.md` (narrative architecture + open decisions) AND `doc/feature/*.md` (OKF concept docs — add a new file per new module, update `resource`/content on changed modules, remove or mark `status: deprecated` on removed ones, keep `doc/feature/index.md` links current). It does not touch `doc/bug/` — that subtree is owned exclusively by `incident-handler` (rule #3).
 
 ## 5. Knowledge Graph Before Code
 
 - This project uses `graphify` to build a persistent knowledge graph of the codebase.
-- Before grepping/reading through code files to answer an architecture or "where is X" question, query the graphify knowledge graph first.
-- Fall back to reading raw code only when the graph doesn't have the answer.
+- **Order of lookup for any "where is X" / "how does X work" / architecture question, or before editing a module you haven't touched yet this session:**
+  1. `doc/index.md` → relevant bundle index (`doc/feature/index.md` or `doc/bug/index.md`) → the specific concept doc. Fastest, hand-curated, cheapest.
+  2. `graphify` knowledge graph (`/graphify query "..."`) if the doc bundle doesn't have the answer or seems stale.
+  3. Raw code grep/read only if neither of the above resolves it.
+- This is enforced by instruction, not tooling — there is no hook that blocks edits pending a graphify check (a hard gate can't reliably tell whether a given edit needed one). Treat skipping steps 1–2 as a process violation to self-correct on, the same way skipping tests before claiming a fix works would be.
+- If you skip straight to raw code because the task is trivial (a one-line typo fix, a rename with no behavior change), that's fine — use judgment. The requirement is for anything touching an module's actual logic or where "how does this currently work" matters.
 
 ## 6. Pydantic Models — Single Source of Truth
 
@@ -81,6 +106,8 @@ These rules apply to any AI coding agent working in this repo.
 2. Use **PMC Open Access** to fetch full text of freely available papers (cross-reference via title/authors or direct PMC ID lookup)
 3. Combine results: metadata (PubMed) + body text (PMC) in single ingestion record
 4. Fall back to abstract-only for non-open-access papers
+
+**Implementation:** `ingestion/pmc_json_converter.py` implements this strategy — searches PMC via E-utilities, fetches full-text XML, and writes structured JSON (`dummy_docs/pmc_documents.json`) matching the schema `JSONLoaderService` (`ingestion/loaders.py`) expects.
 
 **When user requests dummy/sample data:**
 

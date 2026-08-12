@@ -4,7 +4,7 @@
 
 ## Status
 
-Learning project for vector data ingestion, parsing, RAG, and DB connections. Foundation layer initialized: settings, env config, Pydantic data models, modular pipeline architecture designed. All data types validated via type contracts.
+Learning project for vector data ingestion, parsing, RAG, and DB connections. Foundation layer complete: settings, env config, Pydantic data models. Ingestion layer functional for PDF, Excel/CSV, and JSON sources (loaders + chunker wired via `scripts/ingest_documents.py`); JSON path includes a real data source (PMC/PubMed fetcher). Embeddings, vector DB, RAG, and storage layers still planned. See `INGESTION_GUIDE.md` for the end-to-end usage walkthrough.
 
 ## Architecture
 
@@ -43,13 +43,24 @@ Learning project for vector data ingestion, parsing, RAG, and DB connections. Fo
 - **Exports:** All via `models/__init__.py`
 - **Convention:** Every new data type gets a Pydantic model here; no dicts, tuples, or ad-hoc classes
 
-### 4. ingestion/ (planned)
+### 4. ingestion/
 
-- **Purpose:** Extract and parse documents
-- **Key modules:**
-  - `loaders/` — PDFLoader, DocLoader, APILoader, DBLoader
-  - `parsers/` — TextChunker, MetadataExtractor
-  - `pipeline.py` — compose loaders + parsers
+- **Purpose:** Extract, parse, and chunk documents from multiple source formats into Pydantic `Document`/`Chunk` objects
+- **Status:** ✓ Created (PDF, Excel/CSV, JSON, chunking)
+- **Key files:**
+  - `ingestion/loaders.py` — `LoaderFactory` + Pydantic-based loader services: `PDFLoaderService` (Docling), `TextLoaderService`, `ExcelCSVLoaderService` (Unstructured), `JSONLoaderService` (nested metadata flattening + common-field content extraction for clinical/research JSON). All return `models.documents.Document` objects.
+  - `ingestion/chunker.py` — `ChunkerService` + `ChunkerConfig`. Splits `Document`s into `Chunk`s via `RecursiveCharacterTextSplitter`, preserving parent metadata. `chunk_size`/`chunk_overlap` now default from `settings.chunk_size`/`settings.chunk_overlap` (previously hardcoded) — single source of truth for chunk sizing is `.env`/`settings.py`.
+  - `ingestion/pdf_extraction.py` — standalone LangChain-`Document`-based PDF loader (Docling), independent of the Pydantic loader stack. Demo/reference script, not used by `scripts/ingest_documents.py`.
+  - `ingestion/json_extraction.py` — standalone LangChain-`Document`-based JSON loader, same relationship to `JSONLoaderService` as `pdf_extraction.py` has to `PDFLoaderService` (simpler, non-Pydantic reference implementation).
+  - `ingestion/pmc_json_converter.py` — fetches papers from PMC/PubMed Central E-utilities (search + full-text XML fetch) and writes them as structured JSON (`dummy_docs/pmc_documents.json`) matching the schema `JSONLoaderService` expects (`publication_info`, `authors`, `research_data`, etc.). Populates real sample data for the JSON ingestion path.
+- **Data flow:** JSON is now a first-class ingestion source alongside PDF and Excel/CSV — `pmc_json_converter.py` → `dummy_docs/*.json` → `JSONLoaderService` → `Document` → `ChunkerService` → `Chunk`.
+
+### 4a. scripts/
+
+- **Purpose:** Executable entry points that wire ingestion components together
+- **Status:** ✓ Created
+- **Key files:** `scripts/ingest_documents.py` — full pipeline script (load JSON/PDF/CSV-Excel → chunk → summary stats)
+- **Known issue (inconsistency, not yet fixed):** `scripts/ingest_documents.py` calls `ChunkerConfig(chunk_size=..., chunk_overlap=..., separators=[...])` and `RecursiveChunker(...)`, but `ingestion/chunker.py` only defines `ChunkerConfig(chunk_size, chunk_overlap)` (no `separators` field) and `ChunkerService` (no `RecursiveChunker` class). This will raise at runtime — flagged for follow-up fix, not corrected here per doc-sync scope (docs describe code as-is).
 
 ### 5. embeddings/ (planned)
 
@@ -92,6 +103,11 @@ Learning project for vector data ingestion, parsing, RAG, and DB connections. Fo
 - **RAG retrieval strategy:** Hybrid (vector + metadata filters)
   - Alternatives: Dense-only, BM25 hybrid, multi-stage
 
+**Settled (moved from Open Decisions to Architecture):**
+
+- **Chunk size/overlap source of truth:** `settings.py` (`CHUNK_SIZE`/`CHUNK_OVERLAP` env vars, defaults 1024/100), not hardcoded in `ChunkerConfig`. (inferred from code, `ingestion/chunker.py`)
+- **JSON as first-class ingestion source:** JSON is treated on par with PDF and Excel/CSV, with `JSONLoaderService` doing rich nested-metadata extraction for clinical/research-paper schemas (patient_info, clinical_data, publication_info, authors, research_data, surgical_data). (inferred from code, `ingestion/loaders.py`)
+
 ## Future Enhancements (Deferred — not yet built)
 
 Retrieval architecture decisions from design discussion, deferred until core pipeline (ingestion → embed → store) is working end-to-end:
@@ -109,6 +125,7 @@ Retrieval architecture decisions from design discussion, deferred until core pip
 
 ## Changelog
 
+- 2026-08-12: doc-sync — documented JSON ingestion path (`ingestion/json_extraction.py`, `ingestion/pmc_json_converter.py`, `JSONLoaderService`), `scripts/ingest_documents.py` pipeline entry point, and settings-driven chunker config (`ChunkerConfig` now reads `chunk_size`/`chunk_overlap` from `settings.py` instead of hardcoded defaults). Moved 2 settled decisions from Open Decisions to Architecture. Flagged a real code inconsistency in `scripts/ingest_documents.py` (references `RecursiveChunker`/`separators` that don't exist in `ingestion/chunker.py`) for follow-up.
 - 2026-08-11: Documented deferred retrieval architecture (chunking, hybrid+rerank, metadata auto-discovery incl. worst-case messy-data strategy, NER, RAPTOR) — see Future Enhancements section.
 - 2026-08-11: Pydantic models layer — Document, Chunk, Vector, RAGQuery/Response contracts. Added Pydantic-first rule to CLAUDE.md.
 - 2026-08-11: Foundation layer — settings.py, .env.example, modular architecture design, README docs.
