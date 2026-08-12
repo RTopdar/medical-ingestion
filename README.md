@@ -13,26 +13,22 @@ Build modular, reusable components that can be:
 ## Architecture
 
 ```text
-ingestion/      — data extraction & parsing
-  ├── loaders/  — PDF, docs, APIs, DBs
-  ├── parsers/  — text extraction, chunking
-  └── pipeline/ — compose loaders + parsers
+ingestion/          — data extraction & parsing (implemented)
+  ├── loaders/      — PDFLoaderService, TextLoaderService, ExcelCSVLoaderService,
+  │                   JSONLoaderService, LoaderFactory
+  ├── chunker.py    — ChunkerConfig, ChunkerService (Document -> Chunk)
+  ├── pmc_fetcher.py, pmc_json_converter.py — PMC ingestion
+  └── *_extraction.py — standalone reference scripts, superseded by loaders/
 
-embeddings/     — embedding generation
-  └── embed.py  — vectorize text via embedding models
+models/             — Pydantic data models (implemented)
+  ├── documents.py  — Document, Metadata
+  ├── rag.py        — RAGQuery, RAGResponse, RetrievedContext
+  └── vectors.py    — EmbeddingRequest, EmbeddingResult, Vector
 
-vector_db/      — vector storage
-  ├── chroma.py — Chroma integration
-  ├── faiss.py  — FAISS integration
-  └── base.py   — abstract vector store interface
+scripts/
+  └── ingest_documents.py — wires loaders + chunker into one pipeline
 
-rag/            — retrieval-augmented generation
-  ├── retriever.py — vector + metadata search
-  ├── generator.py — LLM-based answer generation
-  └── pipeline.py  — orchestrate retrieval + generation
-
-storage/        — traditional DB connectors
-  └── sql.py    — SQL database operations
+embeddings/, vector_db/, rag/, storage/  — planned, not yet implemented
 ```
 
 ## Configuration
@@ -53,27 +49,23 @@ See [.env.example](.env.example) for all available settings.
 
 ## Usage
 
-### Modular — Call components separately
+### Implemented — loaders + chunker
 
 ```python
-from ingestion.loaders import PDFLoader
-from ingestion.parsers import TextChunker
-from embeddings.embed import Embedder
+from ingestion.loaders import LoaderFactory
+from ingestion.chunker import ChunkerConfig, ChunkerService
 
-# Extract text from PDF
-loader = PDFLoader("docs/paper.pdf")
-text = loader.load()
+# Load documents (PDF, text, Excel/CSV, or JSON)
+loader = LoaderFactory.pdf_loader("docs/")
+docs = loader.load()
 
-# Chunk and prepare
-chunker = TextChunker(chunk_size=1024)
-chunks = chunker.chunk(text)
-
-# Embed chunks
-embedder = Embedder()
-vectors = embedder.embed(chunks)
+# Chunk for RAG
+config = ChunkerConfig(chunk_size=512, chunk_overlap=100)
+chunker = ChunkerService(config=config)
+chunks = chunker.chunk(docs)
 ```
 
-### Cohesive — Chain pipelines together
+### Planned — embeddings, vector storage, RAG query (not yet implemented)
 
 ```python
 from ingestion.pipeline import IngestionPipeline
