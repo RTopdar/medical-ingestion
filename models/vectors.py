@@ -8,6 +8,21 @@ from sqlalchemy import Column, JSON
 from sqlmodel import Field, SQLModel
 
 
+class IngestedDocument(SQLModel, table=True):
+    """Whole-document dedup gate — skip re-ingesting an already-seen document."""
+
+    __tablename__ = "documents"
+
+    content_hash: str = Field(primary_key=True, description="sha256 of whole normalized document content")
+    source: str
+    ingested_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @staticmethod
+    def make_content_hash(content: str) -> str:
+        normalized = re.sub(r"\s+", " ", content.strip())
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
 class Chunk(SQLModel, table=True):
     """One row per chunk occurrence — same content_hash can repeat across many
     rows (different document/patient/source), each carrying its own metadata.
@@ -22,6 +37,7 @@ class Chunk(SQLModel, table=True):
     model: str = Field(description="Embedding model used")
     embedding: list[float] = Field(sa_column=Column(JSON), description="Cache-hit lookup only, not searched")
     metadata_: dict = Field(default_factory=dict, sa_column=Column("metadata", JSON), description="source, source_type, patient_mrn, document_id, ...")
+    document_content_hash: Optional[str] = Field(default=None, foreign_key="documents.content_hash")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @staticmethod
@@ -44,21 +60,6 @@ class FailedEmbedding(SQLModel, table=True):
     model: str
     attempt_count: int = Field(default=1)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
-
-class IngestedDocument(SQLModel, table=True):
-    """Whole-document dedup gate — skip re-ingesting an already-seen document."""
-
-    __tablename__ = "documents"
-
-    content_hash: str = Field(primary_key=True, description="sha256 of whole normalized document content")
-    source: str
-    ingested_at: datetime = Field(default_factory=datetime.utcnow)
-
-    @staticmethod
-    def make_content_hash(content: str) -> str:
-        normalized = re.sub(r"\s+", " ", content.strip())
-        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 class EmbeddingRequest(BaseModel):

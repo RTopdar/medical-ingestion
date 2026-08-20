@@ -9,7 +9,7 @@ status: stable
 
 # Postgres Storage
 
-`storage/postgres.py`. Minimal engine/session setup module — mirrors `storage/sql.py`'s pattern (`SQLModel.metadata.create_all()`, no migrations anywhere in this repo), just pointed at Postgres instead of sqlite.
+`storage/postgres.py`. Minimal engine/session setup module — mirrors `storage/sql.py`'s pattern (`SQLModel.metadata.create_all()`, no migrations anywhere in this repo), just pointed at Postgres instead of sqlite. **Built on SQLModel** for type-safe ORM queries — all table schemas are inferred from typed Pydantic models ([Data Models](/doc/feature/models.md): `Chunk`, `FailedEmbedding`, `IngestedDocument`), and all queries use the `select()` API with typed column references (e.g., `select(Chunk)` where `Chunk.content_hash` has full IDE autocomplete and type hints).
 
 ## Components
 

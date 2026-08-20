@@ -17,12 +17,15 @@ The old dedup keyed embeddings only on `(model, text)`, discarding metadata — 
 
 ## Components
 
+All methods use SQLModel with strong typing — fields are typed (`Chunk.content_hash` is a `str` field, `FailedEmbedding.created_at` is `datetime`), queries use `select()` + typed column references (e.g., `select(Chunk).where(Chunk.content_hash == hash)`), and aggregate operations like `order_by()` use `sqlalchemy.desc()` function (not `.desc()` method) for full IDE autocomplete and type safety.
+
 - `ChunkStore.__init__(engine)` — takes a SQLAlchemy `Engine` (normally `storage.postgres.engine`).
-- `find_by_hash(content_hash) -> list[float] | None` — the sole embedding cache-check source. `SELECT` on `Chunk.content_hash`, returns the first match's `embedding` or `None` on miss. Qdrant is **not** queried during embedding anymore — only Postgres.
-- `insert_chunks(rows: list[Chunk])` — bulk insert, always one row per chunk occurrence, even on a cache hit (needed for provenance). Caller (ingest script) pre-filters duplicates within the batch before calling (via `(content_hash, metadata)` dedup loop in `embed_and_store()`), so the rows passed here are guaranteed to be unique within that single run. Batches (~100 rows) before calling.
+- `find_by_hash(content_hash) -> list[float] | None` — the sole embedding cache-check source. Issues `session.exec(select(Chunk).where(Chunk.content_hash == content_hash)).first()` for type-safe lookup, returns the first match's `embedding` or `None` on miss. Qdrant is **not** queried during embedding anymore — only Postgres.
+- `insert_chunks(rows: list[Chunk])` — bulk insert via `session.add_all(rows)` with `expire_on_commit=False` to preserve the ORM-typed row objects, always one row per chunk occurrence, even on a cache hit (needed for provenance). Caller (ingest script) pre-filters duplicates within the batch before calling (via `(content_hash, metadata)` dedup loop in `embed_and_store()`), so the rows passed here are guaranteed to be unique within that single run. Batches (~100 rows) before calling.
 - `sync_to_qdrant(rows: list[Chunk], qdrant_store: VectorStore) -> int` — upserts to Qdrant only for `content_hash`es not already present there; dedupes within the batch itself too, so exactly one Qdrant point is written per unique hash. Returns count of new points written. Calls `qdrant_store.find_by_hash()` then `qdrant_store.upsert_one()` per new hash (see [Qdrant Infrastructure](/doc/feature/qdrant_infrastructure.md)).
-- `add_failed(text, error, model, content_hash=None)` / `get_failed(limit=100)` — DLQ read/write against `FailedEmbedding`, same shape as the old sqlite DLQ table.
-- `document_seen(content_hash) -> bool` / `mark_document_seen(content_hash, source)` — whole-document dedup gate, replaces `DocumentCache`. Backed by `IngestedDocument` (content_hash primary key).
+- `add_failed(text, error, model, content_hash=None)` — DLQ write. Creates a `FailedEmbedding` ORM object and persists it via `session.add()` + `session.commit()`.
+- `get_failed(limit=100) -> list[FailedEmbedding]` — DLQ read. Issues `session.exec(select(FailedEmbedding).order_by(desc(FailedEmbedding.created_at)).limit(limit)).all()` using SQLAlchemy's `desc()` function for type-safe descending sort on the datetime field, returns a list of ORM-typed rows.
+- `document_seen(content_hash) -> bool` / `mark_document_seen(content_hash, source)` — whole-document dedup gate. `document_seen()` checks for existence via `select(IngestedDocument).where(IngestedDocument.content_hash == hash)`, returns bool. `mark_document_seen()` inserts a new `IngestedDocument` row if not already present. Backed by `IngestedDocument` (content_hash primary key).
 
 ## Data flow
 

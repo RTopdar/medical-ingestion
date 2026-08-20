@@ -21,10 +21,10 @@ class ChunkStore:
     def find_by_hash(self, content_hash: str) -> list[float] | None:
         """Cache-check: has this (model, text) been embedded before?"""
         with Session(self.engine) as session:
-            row = session.exec(
-                select(Chunk).where(Chunk.content_hash == content_hash).limit(1)
+            chunk: Chunk | None = session.exec(
+                select(Chunk).where(Chunk.content_hash == content_hash)
             ).first()
-            return row.embedding if row else None
+            return chunk.embedding if chunk else None
 
     def insert_chunks(self, rows: list[Chunk]) -> None:
         """Always insert one row per chunk occurrence, even on cache-hit, for provenance."""
@@ -51,21 +51,30 @@ class ChunkStore:
 
     def add_failed(self, text: str, error: str, model: str, content_hash: str | None = None) -> None:
         with Session(self.engine) as session:
-            session.add(FailedEmbedding(content_hash=content_hash, text=text, error=error, model=model))
+            failed = FailedEmbedding(content_hash=content_hash, text=text, error=error, model=model)
+            session.add(failed)
             session.commit()
 
     def get_failed(self, limit: int = 100) -> list[FailedEmbedding]:
         with Session(self.engine) as session:
-            statement = select(FailedEmbedding).order_by(desc(FailedEmbedding.created_at)).limit(limit)
-            return list(session.exec(statement).all())
+            failed_list: list[FailedEmbedding] = list(session.exec(
+                select(FailedEmbedding).order_by(desc(FailedEmbedding.created_at)).limit(limit)
+            ).all())
+            return failed_list
 
     def document_seen(self, content_hash: str) -> bool:
         with Session(self.engine) as session:
-            row = session.get(IngestedDocument, content_hash)
-            return row is not None
+            doc: IngestedDocument | None = session.exec(
+                select(IngestedDocument).where(IngestedDocument.content_hash == content_hash)
+            ).first()
+            return doc is not None
 
     def mark_document_seen(self, content_hash: str, source: str) -> None:
         with Session(self.engine) as session:
-            if session.get(IngestedDocument, content_hash) is None:
-                session.add(IngestedDocument(content_hash=content_hash, source=source))
+            doc: IngestedDocument | None = session.exec(
+                select(IngestedDocument).where(IngestedDocument.content_hash == content_hash)
+            ).first()
+            if doc is None:
+                new_doc = IngestedDocument(content_hash=content_hash, source=source)
+                session.add(new_doc)
                 session.commit()
