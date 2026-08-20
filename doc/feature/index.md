@@ -29,6 +29,7 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [Structured Logging Configuration](/doc/feature/logging_config.md) — `logging_config.py`, application-wide structured logging (JSON output, semantic event names, context fields)
 - [Data Models](/doc/feature/models.md) — `models/documents.py` (stub — Document/Chunk/Metadata removed, superseded by `langchain_core.documents.Document`), `models/vectors.py`, `models/rag.py`, `models/clinical_trial.py`
 - [Ingest Pipeline Script](/doc/feature/ingest_documents_script.md) — `scripts/ingest_documents.py`, full pipeline entry point
+- [Similarity Search Demo](/doc/feature/similarity_search_demo.md) — `scripts/similarity_search_demo.py`, interactive REPL for vector similarity retrieval and LLM response streaming
 
 ## Related
 
