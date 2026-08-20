@@ -8,7 +8,9 @@ class VectorStore(ABC):
     per-occurrence provenance and calls upsert_one only for hashes new to this store."""
 
     @abstractmethod
-    def upsert_one(self, content_hash: str, embedding: list[float], metadata: dict, text: str) -> None:
+    def upsert_one(
+        self, content_hash: str, embedding: list[float], metadata: dict, text: str
+    ) -> None:
         """Write a single point for a content_hash not already present in the store."""
 
     @abstractmethod

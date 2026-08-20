@@ -49,7 +49,9 @@ class ChunkStore:
             new_count += 1
         return new_count
 
-    def add_failed(self, text: str, error: str, model: str, content_hash: str | None = None) -> None:
+    def add_failed(
+        self, text: str, error: str, model: str, content_hash: str | None = None
+    ) -> None:
         with Session(self.engine) as session:
             failed = FailedEmbedding(content_hash=content_hash, text=text, error=error, model=model)
             session.add(failed)
@@ -57,9 +59,11 @@ class ChunkStore:
 
     def get_failed(self, limit: int = 100) -> list[FailedEmbedding]:
         with Session(self.engine) as session:
-            failed_list: list[FailedEmbedding] = list(session.exec(
-                select(FailedEmbedding).order_by(desc(FailedEmbedding.created_at)).limit(limit)
-            ).all())
+            failed_list: list[FailedEmbedding] = list(
+                session.exec(
+                    select(FailedEmbedding).order_by(desc(FailedEmbedding.created_at)).limit(limit)
+                ).all()
+            )
             return failed_list
 
     def document_seen(self, content_hash: str) -> bool:

@@ -13,7 +13,9 @@ class IngestedDocument(SQLModel, table=True):
 
     __tablename__ = "documents"
 
-    content_hash: str = Field(primary_key=True, description="sha256 of whole normalized document content")
+    content_hash: str = Field(
+        primary_key=True, description="sha256 of whole normalized document content"
+    )
     source: str
     ingested_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -32,11 +34,20 @@ class Chunk(SQLModel, table=True):
     __tablename__ = "chunks"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    content_hash: str = Field(index=True, description="sha256(model:normalized_text) — not unique, many rows may share a hash")
+    content_hash: str = Field(
+        index=True,
+        description="sha256(model:normalized_text) — not unique, many rows may share a hash",
+    )
     text: str = Field(description="Chunk page_content, verbatim")
     model: str = Field(description="Embedding model used")
-    embedding: list[float] = Field(sa_column=Column(JSON), description="Cache-hit lookup only, not searched")
-    metadata_: dict = Field(default_factory=dict, sa_column=Column("metadata", JSON), description="source, source_type, patient_mrn, document_id, ...")
+    embedding: list[float] = Field(
+        sa_column=Column(JSON), description="Cache-hit lookup only, not searched"
+    )
+    metadata_: dict = Field(
+        default_factory=dict,
+        sa_column=Column("metadata", JSON),
+        description="source, source_type, patient_mrn, document_id, ...",
+    )
     document_content_hash: Optional[str] = Field(default=None, foreign_key="documents.content_hash")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

@@ -100,7 +100,9 @@ class Embedder:
             timeout=60,
         )
         if not resp.ok:
-            raise EmbedderError(f"OpenRouter embeddings request failed ({resp.status_code}): {resp.text}")
+            raise EmbedderError(
+                f"OpenRouter embeddings request failed ({resp.status_code}): {resp.text}"
+            )
 
         data = resp.json().get("data", [])
         if len(data) != len(batch):

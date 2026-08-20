@@ -50,7 +50,11 @@ def _load_all_documents() -> list[Document]:
     sources = [
         ("JSON", lambda: LoaderFactory.json_loader("dummy_docs").load(), FileNotFoundError),
         ("PDF", lambda: LoaderFactory.pdf_loader("dummy_docs").load(), FileNotFoundError),
-        ("Excel/CSV", lambda: LoaderFactory.excel_csv_loader("dummy_docs").load(), FileNotFoundError),
+        (
+            "Excel/CSV",
+            lambda: LoaderFactory.excel_csv_loader("dummy_docs").load(),
+            FileNotFoundError,
+        ),
         ("Text", lambda: LoaderFactory.text_loader("dummy_docs").load(), FileNotFoundError),
         # SQL raises DB-layer errors beyond a missing file, so it needs a broader catch.
         ("SQL", lambda: LoaderFactory.sql_loader(settings.sqlite_db_path).load(), Exception),

@@ -32,7 +32,9 @@ class Settings:
     sqlite_db_path: str = os.getenv("SQLITE_DB_PATH", "./data/medical.db")
     clinical_trials_table: str = os.getenv("CLINICAL_TRIALS_TABLE", "clinical_trials")
     eligibility_table: str = os.getenv("ELIGIBILITY_TABLE", "eligibility")
-    postgres_dsn: str = os.getenv("POSTGRES_DSN", "postgresql+psycopg://postgres:postgres@localhost:5432/medical_ingestion")
+    postgres_dsn: str = os.getenv(
+        "POSTGRES_DSN", "postgresql+psycopg://postgres:postgres@localhost:5432/medical_ingestion"
+    )
 
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")

@@ -16,6 +16,7 @@ from settings import settings
 from vector_db.base import VectorStore
 
 CONTENT_HASH_FIELD = "content_hash"
+KEYWORD_INDEX_FIELDS = ["source_type", "patient_mrn", "provider_specialty", "document_type", "tags"]
 
 
 class QdrantVectorStore(VectorStore):
@@ -34,11 +35,24 @@ class QdrantVectorStore(VectorStore):
         if not self.client.collection_exists(self.collection_name):
             self.client.create_collection(
                 collection_name=self.collection_name,
-                vectors_config=qmodels.VectorParams(size=vector_size, distance=qmodels.Distance.COSINE),
+                vectors_config=qmodels.VectorParams(
+                    size=vector_size, distance=qmodels.Distance.COSINE
+                ),
             )
+        self._ensure_payload_indexes()
+
+    def _ensure_payload_indexes(self) -> None:
+        """Idempotent: create_payload_index on an already-indexed field is a no-op,
+        so this is safe to call on every startup (existing or fresh collection)."""
+        self.client.create_payload_index(
+            collection_name=self.collection_name,
+            field_name=CONTENT_HASH_FIELD,
+            field_schema=qmodels.PayloadSchemaType.KEYWORD,
+        )
+        for field_name in KEYWORD_INDEX_FIELDS:
             self.client.create_payload_index(
                 collection_name=self.collection_name,
-                field_name=CONTENT_HASH_FIELD,
+                field_name=field_name,
                 field_schema=qmodels.PayloadSchemaType.KEYWORD,
             )
 
@@ -46,7 +60,11 @@ class QdrantVectorStore(VectorStore):
         points, _ = self.client.scroll(
             collection_name=self.collection_name,
             scroll_filter=qmodels.Filter(
-                must=[qmodels.FieldCondition(key=CONTENT_HASH_FIELD, match=qmodels.MatchValue(value=content_hash))]
+                must=[
+                    qmodels.FieldCondition(
+                        key=CONTENT_HASH_FIELD, match=qmodels.MatchValue(value=content_hash)
+                    )
+                ]
             ),
             limit=1,
             with_vectors=True,
@@ -55,10 +73,14 @@ class QdrantVectorStore(VectorStore):
             return None
         vector = points[0].vector
         if not isinstance(vector, list) or (vector and not isinstance(vector[0], float)):
-            raise TypeError(f"Expected a flat float vector for a single unnamed vector collection, got {type(vector)}")
+            raise TypeError(
+                f"Expected a flat float vector for a single unnamed vector collection, got {type(vector)}"
+            )
         return cast(list[float], vector)
 
-    def upsert_one(self, content_hash: str, embedding: list[float], metadata: dict, text: str) -> None:
+    def upsert_one(
+        self, content_hash: str, embedding: list[float], metadata: dict, text: str
+    ) -> None:
         """Write a single point. Caller (ChunkStore.sync_to_qdrant) guarantees content_hash
         is new to this store, so no reuse/dedup check happens here."""
         point = qmodels.PointStruct(
@@ -67,3 +89,12 @@ class QdrantVectorStore(VectorStore):
             payload={CONTENT_HASH_FIELD: content_hash, **metadata, "text": text},
         )
         self.client.upsert(collection_name=self.collection_name, points=[point])
+
+    def search(self, query_vector: list[float], limit: int = 3):
+        """Search for similar vectors."""
+        response = self.client.query_points(
+            collection_name=self.collection_name,
+            query=query_vector,
+            limit=limit,
+        )
+        return response.points

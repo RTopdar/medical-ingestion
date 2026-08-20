@@ -45,9 +45,9 @@ def ingest_json_documents(data_dir: str | Path = "dummy_docs") -> list[Document]
         for doc in docs[:1]:
             log.info(
                 "sample_json_document",
-                title=doc.metadata.get('title'),
+                title=doc.metadata.get("title"),
                 content_length=len(doc.page_content),
-                metadata_keys=list(doc.metadata.keys())
+                metadata_keys=list(doc.metadata.keys()),
             )
 
         return docs
@@ -165,7 +165,7 @@ def embed_and_store(chunks: list[Document]) -> None:
         "synced_qdrant",
         new_points=new_points,
         collection=qdrant_store.collection_name,
-        cache_hits=len(rows) - new_points
+        cache_hits=len(rows) - new_points,
     )
 
 
@@ -227,7 +227,7 @@ Examples:
         "ingestion_summary",
         doc_count=len(all_documents),
         chunk_count=len(chunks),
-        avg_chunk_size=avg_chunk_size
+        avg_chunk_size=avg_chunk_size,
     )
 
     embed_and_store(chunks)

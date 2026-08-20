@@ -30,7 +30,12 @@ def doc_to_pdf(doc: dict, output_path: Path) -> None:
 
     pub = doc.get("publication_info", {})
     if pub.get("journal"):
-        story.append(Paragraph(f"Journal: {pub['journal']} ({pub.get('publication_date', 'n.d.')})", styles["Normal"]))
+        story.append(
+            Paragraph(
+                f"Journal: {pub['journal']} ({pub.get('publication_date', 'n.d.')})",
+                styles["Normal"],
+            )
+        )
     story.append(Spacer(1, 12))
 
     for paragraph in doc["content"].split("\n\n"):
@@ -42,7 +47,9 @@ def doc_to_pdf(doc: dict, output_path: Path) -> None:
     pdf.build(story)
 
 
-def convert_all(json_path: str | Path = "dummy_docs/pmc_documents.json", output_dir: str | Path = "data/pdf") -> list[str]:
+def convert_all(
+    json_path: str | Path = "dummy_docs/pmc_documents.json", output_dir: str | Path = "data/pdf"
+) -> list[str]:
     docs = json.loads(Path(json_path).read_text(encoding="utf-8"))
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
