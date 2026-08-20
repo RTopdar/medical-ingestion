@@ -27,6 +27,33 @@ Qdrant is a vector database optimized for semantic search and similarity retriev
 - **Persistence:** Named volume `qdrant_storage` (survives container restarts, `/qdrant/storage` inside container)
 - **Restart policy:** `unless-stopped` (auto-restart on daemon reboot, manual stop stays stopped)
 
+## Payload Indexing
+
+**Status:** ✓ Added (commit c425497, 2026-08-21)
+
+Qdrant payload indexing enables efficient metadata filtering during similarity search. The infrastructure automatically creates KEYWORD indices on startup for fast field lookups without scanning entire collections.
+
+**Indexed fields (defined in `vector_db/qdrant.py`):**
+- `content_hash` — deduplication key, always indexed
+- `source_type` — document source (pdf, json, clinical_trial, etc.)
+- `patient_mrn` — medical record identifier for patient-level lineage
+- `provider_specialty` — specialty of document provider/author
+- `document_type` — document category (lab_result, discharge_summary, clinical_note, research_paper, trial_protocol, etc.)
+- `tags` — free-form semantic tags (queryable for future RAG metadata filters)
+
+**Implementation in `QdrantVectorStore._ensure_payload_indexes()`:**
+- Called automatically on collection init (via `_ensure_collection()`)
+- Idempotent: creating an index on an already-indexed field is a no-op
+- Safe to call on every startup (existing or fresh collection) — no performance penalty
+- All indices use `PayloadSchemaType.KEYWORD` for exact-match and prefix-filter support
+
+**Why KEYWORD type:** Enables queries like "find all chunks from source_type='clinical_note' AND patient_mrn='ABC123'" in hybrid retrieval workflows. KEYWORD indices support equality checks and prefix filters, sufficient for the current metadata filter use case. Future work may add FLOAT indices for numeric metadata (dates, dosages) or full-text search indices.
+
+**Data flow (wired, current):**
+Every point upserted via `QdrantVectorStore.upsert_one()` includes metadata fields (passed from `ChunkStore.sync_to_qdrant()`, originated from ingested document metadata). Once indexed, these fields become queryable for hybrid retrieval without additional computation.
+
+**Future use:** The `doc/feature/similarity_search_demo.md` retrieval layer (currently pure vector-similarity top-3) will add metadata pre-filtering (e.g., "retrieve only chunks from patients in cohort X") to shrink search space and improve precision — the indexed payload fields enable this without scanning the full collection.
+
 ## Files
 
 ### docker-compose.qdrant.yml
@@ -150,9 +177,10 @@ docker volume rm medical-ingestion_qdrant_storage  # if you want to delete store
 ## Integration Checklist
 
 - [x] `vector_db/base.py` — abstract `VectorStore` interface (`upsert_one`, `find_by_hash`)
-- [x] `vector_db/qdrant.py` — `QdrantVectorStore` implementation (collection management, `upsert_one`, `find_by_hash`)
+- [x] `vector_db/qdrant.py` — `QdrantVectorStore` implementation (collection management, `upsert_one`, `find_by_hash`, `search()`)
+- [x] Payload indexing — `KEYWORD_INDEX_FIELDS` (source_type, patient_mrn, provider_specialty, document_type, tags) + `_ensure_payload_indexes()` idempotent creation (commit c425497, 2026-08-21)
 - [x] Wired: `scripts/ingest_documents.py::embed_and_store` → [Chunk Store](/doc/feature/chunk_store.md)`.sync_to_qdrant()` → `QdrantVectorStore.upsert_one()`
-- [ ] Add retrieval API to `vector_db/qdrant.py` (used by RAG layer later)
+- [x] Retrieval API added to `vector_db/qdrant.py` (`.search()` method, used by [Similarity Search Demo](/doc/feature/similarity_search_demo.md) and RAG layer)
 - [x] `qdrant-client` in `pyproject.toml`
 - [ ] Write integration tests (create collection → embed dummy chunks → search → verify ranking)
 
