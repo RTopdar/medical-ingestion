@@ -21,11 +21,15 @@ These were superseded by `langchain_core.documents.Document` (`page_content: str
 
 ## `models/vectors.py`
 
-- `Vector` — `chunk_id`, `embedding`, `model`, `dimension`.
-- `EmbeddingRequest` — `text`, `model`.
-- `EmbeddingResult` — `text`, `embedding`, `model`, `dimension`.
+Rewritten for the Postgres migration (SQLite `EmbeddingCache`/`DocumentCache` → Postgres). Plain-Pydantic `Vector` model removed (superseded by `Chunk`, below).
 
-Not yet wired to any embedding service in the codebase (no consumer module exists yet).
+- `Chunk` — `SQLModel(table=True)`, table `chunks`. One row per chunk **occurrence** — the same `content_hash` intentionally repeats across rows when identical text appears in multiple documents/patients, so `content_hash` is indexed but **not unique**. Fields: `id` (PK), `content_hash`, `text`, `model`, `embedding` (`list[float]`, JSON column — cache-lookup only, never searched), `metadata_` (dict, JSON column aliased `"metadata"` — carries `source`, `source_type`, `patient_mrn`, `document_id`, etc.), `created_at`. `Chunk.make_content_hash(model, text)` — `staticmethod`, `sha256(f"{model}:{normalized_text}")`, same logic as the old `EmbeddingCache.make_key`.
+- `FailedEmbedding` — `SQLModel(table=True)`, table `failed_embeddings`. DLQ, same shape as the old sqlite DLQ table (`content_hash`, `text`, `error`, `model`, `attempt_count`, `created_at`).
+- `IngestedDocument` — `SQLModel(table=True)`, table `documents`. `content_hash` primary key, `source`, `ingested_at`. Whole-document dedup gate, replaces the deleted `DocumentCache`. `IngestedDocument.make_content_hash(content)` — `staticmethod`.
+- `EmbeddingRequest` — plain `BaseModel`, `text`, `model`. API-boundary type only, unchanged.
+- `EmbeddingResult` — plain `BaseModel`, `text`, `embedding`, `model`, `dimension`. API-boundary type only, unchanged.
+
+Consumed by [Chunk Store](/doc/feature/chunk_store.md) (`storage/chunk_store.py`) and [Postgres Storage](/doc/feature/postgres_storage.md) (`storage/postgres.py::init_db`).
 
 ## `models/rag.py`
 

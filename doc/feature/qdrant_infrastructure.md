@@ -77,21 +77,22 @@ bash scripts/start_qdrant.sh
 
 ## Architecture Position
 
-**Data flow (planned, not yet wired):**
+**Data flow (wired, current):**
 
 ```
-[Chunker] 
+[Chunker]
   → Document (chunked)
-    → [Embedder]
-      → Vector + metadata
-        → [vector_db integration layer]
-          → [Qdrant: create_collection → upsert vectors]
-            → [RAG Retriever]
-              → [Generator]
-                → Answer
+    → [Embedder] (cache-checks via Chunk Store / Postgres)
+      → embeddings + content_hashes
+        → [Chunk Store: insert_chunks → Postgres "chunks" table, one row per occurrence]
+          → [Chunk Store: sync_to_qdrant → QdrantVectorStore.upsert_one, only new hashes]
+            → Qdrant: one point per unique content_hash
+              → [RAG Retriever] (planned)
+                → [Generator] (planned)
+                  → Answer
 ```
 
-Currently the pipeline stops at chunking; embeddings exist but are unwired. Qdrant infrastructure is in place and ready for the vector_db integration layer (planned `vector_db/qdrant.py` client) to wire embeddings → store → retrieval.
+`vector_db/base.py::VectorStore` interface: `upsert_one(content_hash, embedding, metadata, text)` (single point, caller guarantees the hash is new to the store) + `find_by_hash(content_hash)`. `QdrantVectorStore` (`vector_db/qdrant.py`) implements both. Per-occurrence provenance (which patient/document a chunk came from) lives in Postgres, not Qdrant — see [Chunk Store](/doc/feature/chunk_store.md) and [Postgres Storage](/doc/feature/postgres_storage.md). **pgvector was considered and rejected** for vector search — Postgres holds only a JSON `embedding` column for cache-hit checks; Qdrant remains the sole similarity-search backend (see [Postgres Storage](/doc/feature/postgres_storage.md) for the full rationale).
 
 ## Why Qdrant
 
@@ -146,23 +147,25 @@ docker rm medical-ingestion-qdrant
 docker volume rm medical-ingestion_qdrant_storage  # if you want to delete stored data
 ```
 
-## Integration Checklist (Planned)
+## Integration Checklist
 
-- [ ] Create `vector_db/base.py` — abstract interface for vector store backends
-- [ ] Create `vector_db/qdrant.py` — Qdrant implementation (collection management, upsert, search)
-- [ ] Wire `Embedder.embed()` → `vector_db.upsert()` in a new pipeline script
+- [x] `vector_db/base.py` — abstract `VectorStore` interface (`upsert_one`, `find_by_hash`)
+- [x] `vector_db/qdrant.py` — `QdrantVectorStore` implementation (collection management, `upsert_one`, `find_by_hash`)
+- [x] Wired: `scripts/ingest_documents.py::embed_and_store` → [Chunk Store](/doc/feature/chunk_store.md)`.sync_to_qdrant()` → `QdrantVectorStore.upsert_one()`
 - [ ] Add retrieval API to `vector_db/qdrant.py` (used by RAG layer later)
-- [ ] Add Qdrant client library to `pyproject.toml` (currently not a Python dependency — only Docker container)
+- [x] `qdrant-client` in `pyproject.toml`
 - [ ] Write integration tests (create collection → embed dummy chunks → search → verify ranking)
 
 ## Related Concepts
 
-- [Embedder](/doc/feature/embedder.md) — produces vectors and metadata (upstream producer)
+- [Embedder](/doc/feature/embedder.md) — produces vectors, cache-checked via [Chunk Store](/doc/feature/chunk_store.md) (upstream producer)
+- [Chunk Store](/doc/feature/chunk_store.md) — Postgres provenance store; calls `upsert_one` only for hashes new to Qdrant
+- [Postgres Storage](/doc/feature/postgres_storage.md) — relational side of the split; explains why pgvector was rejected in favor of keeping Qdrant
 - [Chunker](/doc/feature/chunker.md) — produces Documents (data source for embedder)
-- IMPLEMENTATION_PLAN.md: Infrastructure section, Vector DB layer, Open Decisions ("Vector DB abstraction layer")
+- IMPLEMENTATION_PLAN.md: Infrastructure section, Vector DB layer, Architecture (settled: "pgvector rejected, Qdrant kept")
 
 ## Notes
 
-- **No Python package yet:** Qdrant is accessed only via Docker container + HTTP/gRPC. Python `qdrant-client` library will be added once `vector_db/qdrant.py` is created.
+- **Python package:** `qdrant-client` (in `pyproject.toml`), used by `vector_db/qdrant.py::QdrantVectorStore`.
 - **Networking:** Container runs on `localhost:6333` (host network or bridge — compose file uses bridge). From host Python code, connect to `localhost:6333`.
 - **Data persistence:** All ingested vectors survive container stop/restart. To reset, either delete the volume or use Qdrant's API (`DELETE /collections/{name}`).

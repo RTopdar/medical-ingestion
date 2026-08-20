@@ -104,6 +104,28 @@ These rules apply to any AI coding agent working in this repo.
 - This applies to: `python`, `pip`, `pytest`, `uv run`, or any Python-based CLI tools
 - **Never run naked Python commands** — always activate first to ensure correct dependencies and isolation
 
+## 9b. Pipeline Script Usage — `scripts/ingest_documents.py`
+
+**Full ingestion pipeline** (load → chunk → embed → Qdrant push):
+
+```bash
+# All filetypes from dummy_docs (JSON, PDF, CSV/XLSX)
+python scripts/ingest_documents.py
+
+# PDF only (Docling extraction, highest fidelity)
+python scripts/ingest_documents.py --filetype=pdf
+
+# Multiple filetypes
+python scripts/ingest_documents.py --filetype=pdf,json
+
+# Help
+python scripts/ingest_documents.py --help
+```
+
+**Data storage:** All raw source data lives in `dummy_docs/` — PDFs, JSON, CSV/XLSX files. The script auto-discovers and processes them by filetype. No hardcoded paths; all filetypes default to `dummy_docs/` root.
+
+**Qdrant output:** Points land in the `medical_chunks` collection on localhost:6333 (start with `scripts/start_qdrant.sh`). One point per chunk, with `content_hash` payload for dedup (same hash → reuses stored embedding).
+
 ## 10. Medical Data Sources — API Integration
 
 **Primary free APIs for medical/clinical data:**
@@ -130,9 +152,9 @@ These rules apply to any AI coding agent working in this repo.
 - Build loaders supporting multiple output formats
 - Pipeline handles structured (trials) + semi-structured (papers) data
 - Document source and format in metadata for traceability
-- **Always store to `dummy_docs/`** — single source of truth for test data
-- Organize by source: `dummy_docs/pubmed/`, `dummy_docs/clinicaltrials/`
-- Include format in filename: `full_paper_diabetes.txt`, `sample_pubmed_abstracts.json`, `trials_sample.csv`
+- **Always store to `dummy_docs/`** — single source of truth for all test/sample data (JSON, PDF, CSV, XLSX files). `scripts/ingest_documents.py` auto-discovers and processes them by filetype with `--filetype=` selectors. Do not use other directories like `data/pdf/` or `data/csv/`.
+- Organize by source/format within `dummy_docs/` as needed: `dummy_docs/pmc_documents.json`, `dummy_docs/*.pdf` (individual PDFs), `dummy_docs/trials.csv`
+- Include format in filename for clarity: `pmc_documents.json`, `trials_sample.csv`, `001_Paper_Title.pdf`
 
 ## 11. OpenRouter MCP — Locked to Read-Only Lookup Tools
 

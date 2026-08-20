@@ -19,8 +19,9 @@ class Settings:
     embedding_batch_size: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "100"))
 
     # Vector DB
-    vector_db_type: str = os.getenv("VECTOR_DB_TYPE", "chroma")
+    vector_db_type: str = os.getenv("VECTOR_DB_TYPE", "qdrant")
     vector_db_path: str = os.getenv("VECTOR_DB_PATH", "./data/chroma")
+    qdrant_url: str = os.getenv("QDRANT_URL", "http://localhost:6333")
 
     # Ingestion
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "1024"))
@@ -31,7 +32,7 @@ class Settings:
     sqlite_db_path: str = os.getenv("SQLITE_DB_PATH", "./data/medical.db")
     clinical_trials_table: str = os.getenv("CLINICAL_TRIALS_TABLE", "clinical_trials")
     eligibility_table: str = os.getenv("ELIGIBILITY_TABLE", "eligibility")
-    embedding_cache_db_path: str = os.getenv("EMBEDDING_CACHE_DB_PATH", "./data/embedding_cache.db")
+    postgres_dsn: str = os.getenv("POSTGRES_DSN", "postgresql+psycopg://postgres:postgres@localhost:5432/medical_ingestion")
 
     # Logging
     log_level: str = os.getenv("LOG_LEVEL", "INFO")

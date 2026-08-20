@@ -21,9 +21,11 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [Basic Document Ingestion](/doc/feature/basic_document_ingestion.md) — `ingestion/loaders/individual-scripts/basic_document_ingestion.py`, standalone reference script
 - [ClinicalTrials Fetcher](/doc/feature/clinicaltrials_fetcher.md) — `ingestion/clinicaltrials_fetcher.py`, ClinicalTrials.gov API v2 fetch
 - [SQL Loader (Storage Layer)](/doc/feature/sql_loader.md) — `storage/` (persistence: SQLModel-backed SQLite seed/query, two normalized tables, FK join, predicate-based query API) + `ingestion/loaders/sql_loader.py` (`SQLDataLoaderService`, converts joined rows to flat-metadata `Document`)
-- [Embedder](/doc/feature/embedder.md) — `ingestion/embedder.py`, `Document` (chunked) → embedding vectors via OpenRouter `/embeddings`, cache-first
-- [Embedding Cache](/doc/feature/embedding_cache.md) — `storage/embedding_cache.py`, raw-sqlite3 content-addressable `(model, text) -> vector` store backing the Embedder
-- [Qdrant Infrastructure](/doc/feature/qdrant_infrastructure.md) — `docker-compose.qdrant.yml` + `scripts/start_qdrant.sh`, containerized Qdrant v1.19+ vector database (local dev) with startup automation
+- [Embedder](/doc/feature/embedder.md) — `ingestion/embedder.py`, `Document` (chunked) → embedding vectors via OpenRouter `/embeddings`, cache-checked against Postgres
+- [Chunk Store](/doc/feature/chunk_store.md) — `storage/chunk_store.py`, Postgres-backed repository for chunk provenance, embedding cache-check, whole-document dedup, and DLQ (replaces the deleted `embedding_cache.py`/`document_cache.py`)
+- [Postgres Storage](/doc/feature/postgres_storage.md) — `storage/postgres.py` + `docker-compose.postgres.yml` + `scripts/start_postgres.sh`, SQLModel engine/table setup; documents the "pgvector rejected, Qdrant kept" decision
+- [Embedding Cache (removed)](/doc/feature/embedding_cache.md) — deprecated stub, redirects to [Chunk Store](/doc/feature/chunk_store.md)
+- [Qdrant Infrastructure](/doc/feature/qdrant_infrastructure.md) — `docker-compose.qdrant.yml` + `scripts/start_qdrant.sh` + `vector_db/`, containerized Qdrant v1.19+ vector database (sole similarity-search backend) with startup automation
 - [Data Models](/doc/feature/models.md) — `models/documents.py` (stub — Document/Chunk/Metadata removed, superseded by `langchain_core.documents.Document`), `models/vectors.py`, `models/rag.py`, `models/clinical_trial.py`
 - [Ingest Pipeline Script](/doc/feature/ingest_documents_script.md) — `scripts/ingest_documents.py`, full pipeline entry point
 
