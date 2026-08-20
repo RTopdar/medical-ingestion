@@ -22,6 +22,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 from langchain_core.documents import Document
 from tqdm import tqdm
 
+from logging_config import get_logger
 from ingestion.chunker import ChunkerConfig, ChunkerService
 from ingestion.embedder import Embedder
 from ingestion.loaders import LoaderFactory
@@ -30,50 +31,54 @@ from storage.chunk_store import ChunkStore
 from storage.postgres import engine, init_db
 from vector_db import QdrantVectorStore
 
+log = get_logger(__name__)
+
 
 def ingest_json_documents(data_dir: str | Path = "dummy_docs") -> list[Document]:
     """Ingest JSON documents with rich metadata."""
     try:
-        print(f"Loading JSON documents from {data_dir}...")
+        log.info("loading_json_documents", data_dir=data_dir)
         loader = LoaderFactory.json_loader(data_dir)
         docs = loader.load()
-        print(f"  ✓ Loaded {len(docs)} documents from JSON")
+        log.info("loaded_json_documents", count=len(docs))
 
         for doc in docs[:1]:
-            print(f"\n  Sample document:")
-            print(f"    Title: {doc.metadata.get('title')}")
-            print(f"    Content length: {len(doc.page_content)} chars")
-            print(f"    Metadata keys: {list(doc.metadata.keys())}")
+            log.info(
+                "sample_json_document",
+                title=doc.metadata.get('title'),
+                content_length=len(doc.page_content),
+                metadata_keys=list(doc.metadata.keys())
+            )
 
         return docs
     except FileNotFoundError:
-        print(f"  ⊘ No JSON files found in {data_dir}")
+        log.warning("json_files_not_found", data_dir=data_dir)
         return []
 
 
 def ingest_pdf_documents(data_dir: str | Path = "dummy_docs") -> list[Document]:
     """Ingest PDF documents (Docling extraction)."""
     try:
-        print(f"Loading PDF documents from {data_dir}...")
+        log.info("loading_pdf_documents", data_dir=data_dir)
         loader = LoaderFactory.pdf_loader(data_dir)
         docs = loader.load()
-        print(f"  ✓ Loaded {len(docs)} documents from PDF")
+        log.info("loaded_pdf_documents", count=len(docs))
         return docs
     except (FileNotFoundError, Exception) as e:
-        print(f"  ⊘ No PDF files found or error: {e}")
+        log.warning("pdf_load_error", data_dir=data_dir, error=str(e))
         return []
 
 
 def ingest_csv_excel_documents(data_dir: str | Path = "dummy_docs") -> list[Document]:
     """Ingest CSV and Excel documents."""
     try:
-        print(f"Loading CSV/Excel documents from {data_dir}...")
+        log.info("loading_csv_excel_documents", data_dir=data_dir)
         loader = LoaderFactory.excel_csv_loader(data_dir)
         docs = loader.load()
-        print(f"  ✓ Loaded {len(docs)} documents from CSV/Excel")
+        log.info("loaded_csv_excel_documents", count=len(docs))
         return docs
-    except (FileNotFoundError, Exception):
-        print(f"  ⊘ No CSV/Excel files found in {data_dir}")
+    except (FileNotFoundError, Exception) as e:
+        log.warning("csv_excel_load_error", data_dir=data_dir, error=str(e))
         return []
 
 
@@ -93,32 +98,32 @@ def filter_seen_documents(documents: list[Document], store: ChunkStore) -> list[
         new_documents.append(doc)
 
     if skipped:
-        print(f"  ⊘ Skipped {skipped} already-ingested document(s)")
+        log.info("filtered_seen_documents", skipped=skipped)
     return new_documents
 
 
 def chunk_documents(documents: list[Document]) -> list[Document]:
     """Chunk documents for RAG."""
-    print(f"\nChunking {len(documents)} documents...")
+    log.info("chunking_documents", doc_count=len(documents))
     config = ChunkerConfig(chunk_size=512, chunk_overlap=100)
     chunker = ChunkerService(config=config)
     with tqdm(total=len(documents), desc="Chunking", unit="doc") as pbar:
         chunks = chunker.chunk(documents)
         pbar.update(len(documents))
-    print(f"  ✓ Created {len(chunks)} chunks")
+    log.info("chunked_documents", chunk_count=len(chunks))
     return chunks
 
 
 def embed_and_store(chunks: list[Document]) -> None:
     """Embed chunks (Postgres-cached), persist one provenance row per chunk in Postgres,
     and sync one Qdrant point per unique content_hash."""
-    print(f"\nEmbedding {len(chunks)} chunks...")
+    log.info("embedding_chunks", chunk_count=len(chunks))
     chunk_store = ChunkStore(engine)
     embedder = Embedder(chunk_store=chunk_store)
     texts = [chunk.page_content for chunk in chunks]
 
     embeddings, content_hashes = embedder.embed_with_hashes(texts)
-    print(f"  ✓ Embedded {len(embeddings)} chunks (dim={len(embeddings[0])})")
+    log.info("embedded_chunks", count=len(embeddings), dimension=len(embeddings[0]))
 
     rows = [
         Chunk(
@@ -142,22 +147,26 @@ def embed_and_store(chunks: list[Document]) -> None:
         seen.add(key)
         unique_rows.append(row)
     if duplicates:
-        print(f"  ⊘ Dropped {duplicates} duplicate chunk row(s) (same content_hash + metadata within this run)")
+        log.info("dropped_duplicate_rows", count=duplicates)
     rows = unique_rows
 
-    print(f"\nStoring {len(rows)} chunk rows in Postgres...")
+    log.info("storing_chunk_rows", row_count=len(rows))
     batch_size = 100
     with tqdm(total=len(rows), desc="Inserting", unit="row") as pbar:
         for i in range(0, len(rows), batch_size):
             batch = rows[i : i + batch_size]
             chunk_store.insert_chunks(batch)
             pbar.update(len(batch))
-    print(f"  ✓ Inserted {len(rows)} rows into 'chunks'")
+    log.info("inserted_chunk_rows", row_count=len(rows))
 
     qdrant_store = QdrantVectorStore(vector_size=len(embeddings[0]))
     new_points = chunk_store.sync_to_qdrant(rows, qdrant_store)
-    print(f"  ✓ Synced Qdrant: {new_points} new point(s) into '{qdrant_store.collection_name}' "
-          f"({len(rows) - new_points} content-hash cache hits)")
+    log.info(
+        "synced_qdrant",
+        new_points=new_points,
+        collection=qdrant_store.collection_name,
+        cache_hits=len(rows) - new_points
+    )
 
 
 def main():
@@ -183,13 +192,10 @@ Examples:
     filetypes = {ft.strip().lower() for ft in args.filetype.split(",")}
     valid = {"json", "pdf", "csv", "xlsx"}
     if not filetypes <= valid:
-        print(f"✗ Invalid filetype(s): {filetypes - valid}. Valid: {valid}")
+        log.error("invalid_filetypes", invalid=filetypes - valid, valid=valid)
         sys.exit(1)
 
-    print("=" * 60)
-    print("MEDICAL DOCUMENT INGESTION PIPELINE")
-    print(f"Filetypes: {', '.join(sorted(filetypes))}")
-    print("=" * 60)
+    log.info("starting_ingestion_pipeline", filetypes=sorted(filetypes))
 
     all_documents = []
 
@@ -201,27 +207,28 @@ Examples:
         all_documents.extend(ingest_csv_excel_documents())
 
     if not all_documents:
-        print("\n✗ No documents ingested!")
+        log.error("no_documents_ingested")
         sys.exit(1)
 
-    print(f"\n{'=' * 60}")
-    print(f"TOTAL: {len(all_documents)} documents loaded")
-    print(f"{'=' * 60}")
+    log.info("documents_loaded", count=len(all_documents))
 
     init_db()
     chunk_store = ChunkStore(engine)
     all_documents = filter_seen_documents(all_documents, chunk_store)
 
     if not all_documents:
-        print("\n✗ All documents already ingested, nothing new to process!")
+        log.info("all_documents_already_ingested")
         sys.exit(0)
 
     chunks = chunk_documents(all_documents)
 
-    print(f"\nIngestion Summary:")
-    print(f"  Documents: {len(all_documents)}")
-    print(f"  Chunks: {len(chunks)}")
-    print(f"  Avg chunk size: {sum(len(c.page_content) for c in chunks) // len(chunks)} chars")
+    avg_chunk_size = sum(len(c.page_content) for c in chunks) // len(chunks) if chunks else 0
+    log.info(
+        "ingestion_summary",
+        doc_count=len(all_documents),
+        chunk_count=len(chunks),
+        avg_chunk_size=avg_chunk_size
+    )
 
     embed_and_store(chunks)
 

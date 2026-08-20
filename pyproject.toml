@@ -22,6 +22,7 @@ dependencies = [
     "sentence-transformers>=5.7.0",
     "sqlalchemy>=2.0.52",
     "sqlmodel>=0.0.39",
+    "structlog>=24.4.0",
     "tenacity>=9.0.0",
     "tiktoken>=0.13.0",
     "unstructured>=0.25.2",
