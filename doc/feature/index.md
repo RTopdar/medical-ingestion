@@ -26,6 +26,7 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [Postgres Storage](/doc/feature/postgres_storage.md) — `storage/postgres.py` + `docker-compose.postgres.yml` + `scripts/start_postgres.sh`, SQLModel engine/table setup; documents the "pgvector rejected, Qdrant kept" decision
 - [Embedding Cache (removed)](/doc/feature/embedding_cache.md) — deprecated stub, redirects to [Chunk Store](/doc/feature/chunk_store.md)
 - [Qdrant Infrastructure](/doc/feature/qdrant_infrastructure.md) — `docker-compose.qdrant.yml` + `scripts/start_qdrant.sh` + `vector_db/`, containerized Qdrant v1.19+ vector database (sole similarity-search backend) with startup automation
+- [Structured Logging Configuration](/doc/feature/logging_config.md) — `logging_config.py`, application-wide structured logging (JSON output, semantic event names, context fields)
 - [Data Models](/doc/feature/models.md) — `models/documents.py` (stub — Document/Chunk/Metadata removed, superseded by `langchain_core.documents.Document`), `models/vectors.py`, `models/rag.py`, `models/clinical_trial.py`
 - [Ingest Pipeline Script](/doc/feature/ingest_documents_script.md) — `scripts/ingest_documents.py`, full pipeline entry point
 

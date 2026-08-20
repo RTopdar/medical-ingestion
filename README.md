@@ -80,11 +80,37 @@ rag = RAGPipeline()
 answer = rag.query("What does the paper say about X?")
 ```
 
+## Requirements
+
+### System
+
+- Python 3.13+
+- Docker + Docker Compose (for Postgres + pgAdmin + Qdrant)
+- `uv` package manager (for Python deps)
+
+### Python Dependencies
+
+Managed via `uv sync` from pyproject.toml. Key packages:
+
+- `psycopg[binary]` — Postgres adapter + psql CLI access
+- `sqlalchemy`, `sqlmodel` — ORM for relational data
+- `qdrant-client` — Vector DB client
+- `langchain*` — Document loading, chunking, RAG
+- `sentence-transformers` — Embeddings
+- `structlog` — Structured logging
+
 ## Development
 
 ```bash
 # Install dependencies
 uv sync
+
+# Start Postgres + pgAdmin
+./scripts/start_postgres.sh
+# Access pgAdmin at http://localhost:5050 (admin@example.com / admin)
+
+# Query via psql CLI
+psql -U postgres -d medical_ingestion -c "SELECT * FROM chunks LIMIT 5;"
 
 # Run tests
 uv run pytest

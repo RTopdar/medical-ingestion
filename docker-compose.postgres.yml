@@ -6,11 +6,29 @@ services:
       POSTGRES_DB: medical_ingestion
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
       - postgres_storage:/var/lib/postgresql/data
     restart: unless-stopped
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: medical-ingestion-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
 volumes:
   postgres_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/.local/share/medical-ingestion-postgres-data

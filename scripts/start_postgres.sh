@@ -31,3 +31,5 @@ else
 fi
 
 echo "Postgres up on localhost:5432 (db=medical_ingestion, user=postgres)."
+echo "pgAdmin dashboard: http://localhost:5050 (admin@example.com / admin)"
+echo "psql CLI: psql -U postgres -d medical_ingestion"

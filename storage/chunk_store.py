@@ -30,7 +30,7 @@ class ChunkStore:
         """Always insert one row per chunk occurrence, even on cache-hit, for provenance."""
         if not rows:
             return
-        with Session(self.engine) as session:
+        with Session(self.engine, expire_on_commit=False) as session:
             session.add_all(rows)
             session.commit()
 
