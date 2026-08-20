@@ -7,7 +7,7 @@ backend and gets exactly one point per unique content_hash — sync_to_qdrant up
 hashes not already present there.
 """
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, desc
 from sqlmodel import Session, select
 
 from models.vectors import Chunk, FailedEmbedding, IngestedDocument
@@ -56,7 +56,7 @@ class ChunkStore:
 
     def get_failed(self, limit: int = 100) -> list[FailedEmbedding]:
         with Session(self.engine) as session:
-            statement = select(FailedEmbedding).order_by(FailedEmbedding.created_at.desc()).limit(limit)
+            statement = select(FailedEmbedding).order_by(desc(FailedEmbedding.created_at)).limit(limit)
             return list(session.exec(statement).all())
 
     def document_seen(self, content_hash: str) -> bool:
