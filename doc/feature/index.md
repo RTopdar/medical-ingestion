@@ -9,6 +9,12 @@ status: stable
 
 OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document. Traverse via links, not by reading this repo's source tree directly, when answering "how does X work" questions.
 
+## Overview
+
+**Start here:**
+- [Architecture Overview](/doc/feature/architecture_overview.md) — high-level system design, how ingestion/storage/retrieval/RAG layers interconnect
+- [File & Folder Structure](/doc/feature/file_structure.md) — guide to every directory, what lives where, what runs, what stores
+
 ## Concepts
 
 - [Loaders](/doc/feature/loaders.md) — `ingestion/loaders/`, source-format ingestion package (PDF, text, Excel/CSV, JSON, SQL); every loader returns `langchain_core.documents.Document` directly (migrated 2026-08-12)
@@ -30,6 +36,13 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [Data Models](/doc/feature/models.md) — `models/documents.py` (stub — Document/Chunk/Metadata removed, superseded by `langchain_core.documents.Document`), `models/vectors.py`, `models/rag.py`, `models/clinical_trial.py`
 - [Ingest Pipeline Script](/doc/feature/ingest_documents_script.md) — `scripts/ingest_documents.py`, full pipeline entry point
 - [Similarity Search Demo](/doc/feature/similarity_search_demo.md) — `scripts/similarity_search_demo.py`, interactive REPL for vector similarity retrieval and LLM response streaming
+- [BM25 Sparse Index](/doc/feature/bm25_index.md) — `retrieval/bm25.py`, sparse lexical index over the deduped chunk corpus, rebuilt every ingestion run
+- [Hybrid Search Retrieval](/doc/feature/hybrid_search_retrieval.md) — `retrieval/hybrid.py`, reciprocal rank fusion over Qdrant dense + BM25 sparse search
+- [Cross-Encoder Reranker](/doc/feature/reranker.md) — `retrieval/reranker.py`, OpenRouter `/rerank` second-pass reorder over the RRF-fused shortlist
+- [Search Service + Main REPL](/doc/feature/search_service.md) — `retrieval/search.py` + `main.py`, production retrieval+generation orchestrator (embed → RRF fuse → rerank → grounded LLM answer)
+- [BM25 Search Demo](/doc/feature/bm25_search_demo.md) — `scripts/bm25_search_demo.py`, throwaway sparse-only exploration script
+- [Hybrid Search Demo](/doc/feature/hybrid_search_demo.md) — `scripts/hybrid_search_demo.py`, throwaway dense+sparse fusion exploration script (no reranking)
+- [Alembic Migrations](/doc/feature/alembic_migrations.md) — `migrations/` + `alembic.ini`, Postgres schema migration tooling for the SQLModel tables in `models/vectors.py`
 
 ## Related
 

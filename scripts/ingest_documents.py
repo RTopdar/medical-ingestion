@@ -27,6 +27,7 @@ from ingestion.chunker import ChunkerConfig, ChunkerService
 from ingestion.embedder import Embedder
 from ingestion.loaders import LoaderFactory
 from models.vectors import Chunk, IngestedDocument
+from retrieval.bm25 import BM25Index
 from storage.chunk_store import ChunkStore
 from storage.postgres import engine, init_db
 from vector_db import QdrantVectorStore
@@ -169,6 +170,17 @@ def embed_and_store(chunks: list[Document]) -> None:
     )
 
 
+def rebuild_bm25_index(chunk_store: ChunkStore) -> None:
+    """Rebuild BM25 over the full chunk corpus in Postgres, not just this run's new
+    chunks — bm25s has no incremental-add API, so this always runs on every invocation,
+    even when filter_seen_documents finds nothing new to embed."""
+    all_chunks = chunk_store.get_all_chunks()
+    bm25_index = BM25Index()
+    bm25_index.build(all_chunks)
+    bm25_index.save()
+    log.info("built_bm25_index", doc_count=len(bm25_index.corpus))
+
+
 def main():
     """Run full ingestion pipeline with optional filetype filtering."""
     parser = argparse.ArgumentParser(
@@ -218,6 +230,7 @@ Examples:
 
     if not all_documents:
         log.info("all_documents_already_ingested")
+        rebuild_bm25_index(chunk_store)
         sys.exit(0)
 
     chunks = chunk_documents(all_documents)
@@ -231,6 +244,7 @@ Examples:
     )
 
     embed_and_store(chunks)
+    rebuild_bm25_index(chunk_store)
 
     return all_documents, chunks
 

@@ -10,6 +10,16 @@
             "if": "Bash(git commit*)"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "A file was just written or edited (see $ARGUMENTS for tool_input.file_path). Decide if this is a SIGNIFICANT code change per CLAUDE.md Rule #4 — e.g. a new module/service/agent, a new data model, a changed architectural decision, a new script under scripts/ or ingestion/, a new migration. Trivial edits (typo fixes, comment tweaks, formatting, doc-only edits) do NOT count. If significant, invoke the doc-sync agent to update IMPLEMENTATION_PLAN.md, AGENTS.md, and the doc/feature/ OKF bundle. If not significant, do nothing and exit quietly.",
+            "timeout": 120
+          }
+        ]
       }
     ]
   }

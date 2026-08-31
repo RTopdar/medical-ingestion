@@ -53,8 +53,9 @@ def fetch_pmc_full_text(pmcid: str) -> dict:
     if abstract_elem is not None:
         abstract_parts = []
         for p in abstract_elem.findall(".//p"):
-            if p.text:
-                abstract_parts.append(p.text)
+            text = "".join(p.itertext()).strip()
+            if text:
+                abstract_parts.append(text)
         abstract = " ".join(abstract_parts)
 
     # Extract full text body
@@ -63,8 +64,9 @@ def fetch_pmc_full_text(pmcid: str) -> dict:
     if body_elem is not None:
         text_parts = []
         for p in body_elem.findall(".//p"):
-            if p.text:
-                text_parts.append(p.text)
+            text = "".join(p.itertext()).strip()
+            if text:
+                text_parts.append(text)
         full_text = "\n\n".join(text_parts)
 
     # Extract authors

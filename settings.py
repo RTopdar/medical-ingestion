@@ -17,11 +17,13 @@ class Settings:
     chat_model: str = os.getenv("CHAT_MODEL", "openrouter/meta-llama/llama-2-7b-chat")
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "openai/text-embedding-3-small")
     embedding_batch_size: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "100"))
+    reranker_model: str = os.getenv("RERANKING_MODEL", "nvidia/llama-nemotron-rerank-vl-1b-v2:free")
 
     # Vector DB
     vector_db_type: str = os.getenv("VECTOR_DB_TYPE", "qdrant")
     vector_db_path: str = os.getenv("VECTOR_DB_PATH", "./data/chroma")
     qdrant_url: str = os.getenv("QDRANT_URL", "http://localhost:6333")
+    bm25_index_path: str = os.getenv("BM25_INDEX_PATH", "./data/bm25_index")
 
     # Ingestion
     chunk_size: int = int(os.getenv("CHUNK_SIZE", "1024"))
@@ -52,6 +54,7 @@ class Settings:
             f"  chat_model={self.chat_model}\n"
             f"  embedding_model={self.embedding_model}\n"
             f"  embedding_batch_size={self.embedding_batch_size}\n"
+            f"  reranker_model={self.reranker_model}\n"
             f"  vector_db_type={self.vector_db_type}\n"
             f"  chunk_size={self.chunk_size}\n"
             f")"

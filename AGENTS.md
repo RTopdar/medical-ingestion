@@ -74,6 +74,20 @@ These rules apply to any AI coding agent working in this repo.
 - **Enforcement:** Every module imports from `models.*`. Never define data classes in feature modules.
 - **Update contract:** When adding a new data type, add its Pydantic model to the appropriate file in `models/` and update [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) in the same commit. No data model should appear in code before it's in `models/`.
 
+## 6b. Schema Changes — Always Through Alembic
+
+- Postgres schema is managed by **alembic** (`migrations/`), wired to `SQLModel.metadata` via `models/vectors.py` in `migrations/env.py`.
+- `storage/postgres.py::init_db()`'s `create_all` only creates missing tables — it never alters an existing table's columns/types/constraints. Relying on it after a model change causes silent schema drift (the app fails at runtime with `UndefinedColumn` or similar, not at migration time).
+- **Whenever a SQLModel table field is added/renamed/removed/retyped:**
+
+  ```bash
+  source .venv/bin/activate
+  alembic revision --autogenerate -m "<description>"   # review the generated file — autogenerate misses renames and some type/constraint changes
+  alembic upgrade head
+  ```
+
+- **Never hand-write `ALTER TABLE`** against the live DB, and never rely on `create_all` alone for a table that already exists — always go through a committed alembic revision so schema changes are reproducible and reviewable. `create_all` remains fine only for bootstrapping a brand-new table that has no prior migration history.
+
 ## 7. 500-Line File Limit — Hard Cap
 
 - **No code file exceeds 500 lines.** Applies to every `.py` file, no exceptions.

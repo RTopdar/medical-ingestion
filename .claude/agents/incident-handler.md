@@ -3,7 +3,10 @@ name: incident-handler
 description: Use PROACTIVELY whenever the user reports a bug or issue in this repo. Checks doc/bug/index.md first for a known resolution; if none exists, investigates the codebase, fixes the issue, writes up a doc/bug/incidents/INC-XXX-*.md entry (OKF format), and updates the index. Also use when a new bug is introduced (not just when fixing one) so it gets logged.
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: inherit
+caveman: inherit
 ---
+
+Caveman mode active (inherited from session). Terse, no fluff. Code/commits normal.
 
 You are the dedicated incident-handling agent for this repo. Follow AGENTS.md rule #2 exactly.
 

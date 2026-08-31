@@ -1,14 +1,135 @@
 # Medical Ingestion
 
-Learning project for vector data ingestion, parsing, embeddings, storage, and RAG pipelines.
+Production-ready RAG pipeline for medical documents. Ingest PDFs/JSON/SQL → parse → chunk → embed (OpenRouter) → store (Postgres cache + Qdrant) → hybrid search (dense + BM25) → rerank (cross-encoder) → generate (LLM).
 
-## Goals
+## Features
+
+### Document Ingestion
+
+- Multi-format loaders: PDF (Docling), JSON, Excel/CSV, SQL, API (ClinicalTrials.gov, PubMed Central)
+- Metadata propagation (source, page, author) through all processing stages
+
+### Embeddings & Storage
+
+- OpenRouter API integration with retry logic (tenacity backoff)
+- Postgres cache-checking (hash-based dedup) + provenance tracking + DLQ for failures
+- Per-document dedup state (no re-embedding)
+
+### Vector Search (Qdrant)
+
+- Local Docker-based Qdrant v1.19+
+- Persistent volumes for data survival
+- Payload filtering + metadata in vectors
+
+### Retrieval Pipeline
+
+- **Dense retrieval** — Qdrant vector similarity
+- **Sparse retrieval** — BM25 lexical index (rebuilt per ingest run)
+- **Fusion** — Reciprocal rank fusion (RRF) over top-k results
+- **Reranking** — Cross-encoder (OpenRouter `/rerank`) for final ranking
+- **Generation** — Grounded LLM response (streaming)
+
+### Architecture Documentation
+
+- OKF v0.2 bundle structure (Open Knowledge Format) — standardized architecture docs
+- One concept document per module/service/script
+- Auto-sync docs with code changes (doc-sync subagent)
+- Knowledge graph queryable via `/graphify` skill
+
+### Code Quality
+
+- Structured JSON logging (structlog) across all layers
+- Modular, testable components (standalone + composable)
+- Alembic migrations for Postgres schema versioning
+- SQLModel ORM for type-safe database access
+
+## Design Goals
 
 Build modular, reusable components that can be:
 
 - **Called separately** — Each ingestion, embedding, storage, or RAG pipeline is a standalone callable module
 - **Composed together** — Pipelines can be chained and mixed to build complex workflows
 - **Tested independently** — Each component has its own test suite and can be validated in isolation
+
+## Quick Start
+
+**Setup (one-time):**
+
+```bash
+# Install dependencies via uv
+uv sync
+
+# Create .env from template and add your OPENROUTER_API_KEY
+cp .env.example .env
+# Edit .env and add: OPENROUTER_API_KEY=sk-...
+```
+
+**Ingest documents:**
+
+```bash
+# Start Postgres + Qdrant (Docker)
+bash scripts/start_postgres.sh
+bash scripts/start_qdrant.sh
+
+# Run ingestion pipeline (load → chunk → embed → Postgres → Qdrant)
+uv run scripts/ingest_documents.py
+```
+
+**Retrieve & generate (interactive REPL):**
+
+```bash
+# Run the retrieval system: hybrid search (dense + BM25) → cross-encoder rerank → LLM
+uv run main.py
+
+# At the prompt, ask: "What are symptoms of diabetes?"
+# Returns: reranked chunks + grounded LLM answer + citations
+```
+
+**Alternative demos:**
+
+```bash
+uv run scripts/similarity_search_demo.py    # Dense vector search only
+uv run scripts/bm25_search_demo.py          # Sparse lexical search only
+uv run scripts/hybrid_search_demo.py        # Hybrid fusion (no rerank)
+```
+
+See [File & Folder Structure](/doc/feature/file_structure.md) for where everything lives.
+
+## Development Standards & Documentation
+
+### Coding Guidelines
+
+- **Modular design** — Standalone services, chainable pipelines, composable components
+- **Type safety** — SQLModel ORM for database models, type hints on public APIs
+- **Structured logging** — JSON output via structlog, semantic event names, operational context
+- **Error handling** — Retry logic (tenacity) for external APIs, DLQ for failures
+- **Black formatting** — Python 3.13 target (enforced in pre-commit)
+- **Docstrings** — Minimal; code is self-documenting. Comments only for non-obvious WHY
+
+### Documentation Standards (OKF v0.2)
+
+Architecture docs live in `doc/feature/` — [Open Knowledge Format v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) standardized bundle:
+
+- One concept document per module/service/script (concept = one `.md` file with YAML frontmatter + markdown body)
+- Frontmatter metadata: `type`, `title`, `description`, optional `resource` (points to code), `tags`, `generated` (author/timestamp), `verified` (human/process sign-off)
+- Provenance + trust as first-class: `sources` (materials derived from, with credibility signals), `generated` (who/when written), `verified` (who/when reviewed)
+- Cross-links between concepts via standard markdown links
+- Reserved files: `index.md` (directory listing), `log.md` (update history)
+- No central schema registry, no required tooling — plain markdown + YAML, fully diffable in git
+
+### Doc Sync Agent
+
+After significant code changes (new modules, services, data models, scripts, migrations, architectural decisions), the `doc-sync` subagent automatically:
+
+- Scans git diff for code changes
+- Updates `IMPLEMENTATION_PLAN.md` narrative
+- Creates/updates OKF concept docs in `doc/feature/`
+- Updates bundle index + cross-links
+- Ensures architecture docs stay in sync with code
+
+**Result:** Docs don't rot. Humans read code + docs in parallel. No manual documentation churn.
+
+Query the knowledge graph anytime with `/graphify query "<question>"` — it reflects current code + docs structure.
 
 ## Architecture
 
@@ -123,9 +244,24 @@ print(f'Loaded {len(docs)} trial documents')
 "
 ```
 
-### RAG query (planned — not yet wired)
+### Retrieval + Generation (interactive REPL)
 
-Retrieval + generation still under design. Models defined in `models/rag.py`, no active endpoints yet.
+```bash
+# Must have ingested documents first (see above)
+uv run main.py
+
+# Prompt: "What are the symptoms of type 2 diabetes?"
+# System:
+#   1. Embed query (cache-checked)
+#   2. Dense search (Qdrant) + sparse search (BM25)
+#   3. Fuse via reciprocal rank fusion
+#   4. Rerank with cross-encoder
+#   5. Stream grounded LLM answer with citations
+```
+
+**SearchService orchestrates the full RAG pipeline** — see [Search Service](/doc/feature/search_service.md).
+
+To integrate into your app: `from retrieval.search import SearchService` + `service.search(query)` returns chunks + LLM response.
 
 ## Requirements
 
@@ -176,6 +312,38 @@ uv run pytest
 uv run scripts/ingest_documents.py | jq '.event'
 ```
 
+## Documentation Index
+
+**Architecture & Design:**
+
+- **[System Overview](/doc/feature/architecture_overview.md)** — how ingestion, storage, retrieval, RAG layers interconnect
+- **[File & Folder Structure](/doc/feature/file_structure.md)** — guide to directories, what runs where, bootstrap flow
+- **[Full Architecture Bundle](/doc/feature/index.md)** — one doc per module/service/script (loaders, chunker, embedder, storage, search, etc.)
+
+**Infrastructure & Setup:**
+
+- **[Container Setup](/doc/feature/qdrant_infrastructure.md)** — Qdrant Docker compose, startup script, persistent volumes
+- **[Postgres Storage](/doc/feature/postgres_storage.md)** — Postgres setup, init, chunk cache/provenance tables
+- **[Alembic Migrations](/doc/feature/alembic_migrations.md)** — Schema versioning for Postgres tables
+
+**How Things Work:**
+
+- **[Loaders](/doc/feature/loaders.md)** — PDF/JSON/text/SQL/API ingestion
+- **[Hybrid Search](/doc/feature/hybrid_search_retrieval.md)** — dense (Qdrant) + sparse (BM25), RRF fusion
+- **[Cross-Encoder Reranker](/doc/feature/reranker.md)** — second-pass reorder via OpenRouter
+- **[Search Service](/doc/feature/search_service.md)** — retrieval + grounded LLM answer
+
+**Troubleshooting:**
+
+- **[Known Incidents](/doc/bug/index.md)** — lookup prior bugs + fixes in this area before making changes
+
+**Code Entry Points:**
+
+- `ingestion/loaders/` — load documents from various formats
+- `scripts/ingest_documents.py` — end-to-end ingestion pipeline
+- `main.py` — interactive retrieval REPL
+- `retrieval/search.py` — SearchService (for programmatic use)
+
 ## Learning Outcomes
 
 - **Document parsing** — Docling (PDFs), Unstructured (mixed formats), JSON/SQL ingestion
@@ -184,5 +352,5 @@ uv run scripts/ingest_documents.py | jq '.event'
 - **Similarity search** — Qdrant local vector DB, point deduplication, metadata filtering
 - **Relational storage** — SQLModel + Postgres/SQLite, ORM queries, per-occurrence provenance tracking
 - **Observability** — Structured logging (structlog JSON), semantic events, operational monitoring
-- **RAG architecture** — Modular retrieval + generation pipeline (planned: hybrid search, reranking, entity extraction)
+- **RAG architecture** — Modular retrieval + generation pipeline (hybrid search, reranking, cross-encoder rerank)
 - **Pipeline composition** — Standalone + chainable loaders, chunker, embedder, storage layers

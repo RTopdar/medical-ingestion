@@ -49,6 +49,11 @@ class ChunkStore:
             new_count += 1
         return new_count
 
+    def get_all_chunks(self) -> list[Chunk]:
+        """All chunk rows, for full-corpus rebuilds (e.g. BM25 index)."""
+        with Session(self.engine) as session:
+            return list(session.exec(select(Chunk)).all())
+
     def add_failed(
         self, text: str, error: str, model: str, content_hash: str | None = None
     ) -> None:

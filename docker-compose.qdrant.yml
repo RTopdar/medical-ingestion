@@ -11,3 +11,8 @@ services:
 
 volumes:
   qdrant_storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/.local/share/medical-ingestion-qdrant-data
