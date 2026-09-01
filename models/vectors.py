@@ -48,6 +48,15 @@ class Chunk(SQLModel, table=True):
         sa_column=Column("metadata", JSON),
         description="source, source_type, patient_mrn, document_id, ...",
     )
+    section_path: Optional[list[str]] = Field(
+        default=None,
+        sa_column=Column(JSON),
+        description="Hierarchical section path (e.g., ['Introduction', 'Background']), null if no heading structure available",
+    )
+    page_number: Optional[int] = Field(
+        default=None,
+        description="Page number from PDF metadata, null if not available",
+    )
     document_content_hash: Optional[str] = Field(default=None, foreign_key="documents.content_hash")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
