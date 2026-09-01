@@ -13,10 +13,12 @@ def display_results(results: list[dict]) -> None:
     for i, result in enumerate(results, 1):
         text = result.get("text") or "[No text]"
         metadata = result.get("metadata", {}) or {}
-        source = metadata.get("source", "Unknown source")
+        citation = result.get("citation", {})
+        source = citation.get("source") or metadata.get("source", "Unknown source")
+        doc_id = citation.get("document_id", "N/A")
 
         print(f"\nResult #{i} (relevance: {result['relevance_score']:.4f})")
-        print(f"   Source: {source}")
+        print(f"   Citation: [{i}] {source} (doc_id: {doc_id})")
         print(f"   Content Hash: {result.get('content_hash', 'N/A')}")
         print(f"\n   Chunk:")
         print(f"   {text[:300]}{'...' if len(text) > 300 else ''}")
@@ -60,10 +62,24 @@ def main():
             display_results(results)
 
             chunks = [r.get("text") or "" for r in results]
+            citations = [r.get("citation", {}) for r in results]
             print("\nLLM Answer:\n")
-            for token in service.answer(query, chunks):
+            answer_text = ""
+            for token in service.answer(query, chunks, citations):
+                answer_text += token
                 print(token, end="", flush=True)
             print("\n")
+
+            cited_indices = service.extract_citations_from_answer(answer_text, len(results))
+            if cited_indices:
+                print("-" * 80)
+                print(f"Citations found in answer: {cited_indices}")
+                for idx in dict.fromkeys(cited_indices):
+                    if idx <= len(results):
+                        result = results[idx - 1]
+                        citation = result.get("citation", {})
+                        print(f"   [{idx}] {citation.get('source', 'Unknown')} (doc_id: {citation.get('document_id', 'N/A')})")
+                print("-" * 80 + "\n")
         except Exception as e:
             print(f"\nError: {e}\n")
 
