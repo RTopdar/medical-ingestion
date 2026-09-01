@@ -39,6 +39,7 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [BM25 Sparse Index](/doc/feature/bm25_index.md) — `retrieval/bm25.py`, sparse lexical index over the deduped chunk corpus, rebuilt every ingestion run
 - [Hybrid Search Retrieval](/doc/feature/hybrid_search_retrieval.md) — `retrieval/hybrid.py`, reciprocal rank fusion over Qdrant dense + BM25 sparse search
 - [Cross-Encoder Reranker](/doc/feature/reranker.md) — `retrieval/reranker.py`, OpenRouter `/rerank` second-pass reorder over the RRF-fused shortlist
+- [Citation Mapping](/doc/feature/citation_mapping.md) — `retrieval/search.py` + `main.py`, 6-layer pipeline tracking source documents for LLM-generated answers via inline [1], [2] citations
 - [Search Service + Main REPL](/doc/feature/search_service.md) — `retrieval/search.py` + `main.py`, production retrieval+generation orchestrator (embed → RRF fuse → rerank → grounded LLM answer)
 - [BM25 Search Demo](/doc/feature/bm25_search_demo.md) — `scripts/bm25_search_demo.py`, throwaway sparse-only exploration script
 - [Hybrid Search Demo](/doc/feature/hybrid_search_demo.md) — `scripts/hybrid_search_demo.py`, throwaway dense+sparse fusion exploration script (no reranking)
