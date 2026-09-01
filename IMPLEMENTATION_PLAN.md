@@ -20,6 +20,8 @@ Learning project for vector data ingestion, parsing, RAG, and DB connections.
 
 **Citation mapping (2026-09-02):** 6-layer pipeline (metadata extraction → chunk markers → result enrichment → LLM prompt → citation parsing → CLI display) threading source/document_id from Qdrant payload to final answer display. See `doc/feature/citation_mapping.md`.
 
+**Structured chunk metadata (2026-09-02, Task 1 of 5):** Added `section_path` (`Optional[list[str]]`, hierarchical heading path, e.g., `['Introduction', 'Background']`) and `page_number` (`Optional[int]`, PDF page metadata) fields to `Chunk` SQLModel. Migration 32cedf430be3 applied. Enables structure-aware retrieval, section-level filtering, and document multi-level context preservation for improved RAG relevance. Tasks 2–5 (chunker integration, Qdrant indexing, reranking boost, retrieval pipeline wiring) deferred.
+
 See `INGESTION_GUIDE.md` for end-to-end usage walkthrough.
 
 ## Architecture
