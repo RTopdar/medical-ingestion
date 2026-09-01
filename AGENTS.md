@@ -88,6 +88,12 @@ These rules apply to any AI coding agent working in this repo.
 
 - **Never hand-write `ALTER TABLE`** against the live DB, and never rely on `create_all` alone for a table that already exists — always go through a committed alembic revision so schema changes are reproducible and reviewable. `create_all` remains fine only for bootstrapping a brand-new table that has no prior migration history.
 
+## 6c. No Bare `except:`
+
+- **Never use bare `except:`** — it catches everything, including `KeyboardInterrupt`, `SystemExit`, `MemoryError`, and typos (`NameError`/`AttributeError` from unrelated bugs), not just the failure case you intended.
+- **Name the specific exception(s) you expect.** E.g. `except (AttributeError, TypeError):` for a malformed-field case, not `except:`.
+- **If a true catch-all is needed** (e.g. a top-level request/task boundary), use `except Exception:` — never bare `except:` — and log or re-raise. Never silently swallow.
+
 ## 7. 500-Line File Limit — Hard Cap
 
 - **No code file exceeds 500 lines.** Applies to every `.py` file, no exceptions.

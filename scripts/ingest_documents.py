@@ -65,7 +65,7 @@ def ingest_pdf_documents(data_dir: str | Path = "dummy_docs") -> list[Document]:
         docs = loader.load()
         log.info("loaded_pdf_documents", count=len(docs))
         return docs
-    except (FileNotFoundError, Exception) as e:
+    except Exception as e:
         log.warning("pdf_load_error", data_dir=data_dir, error=str(e))
         return []
 
@@ -78,7 +78,7 @@ def ingest_csv_excel_documents(data_dir: str | Path = "dummy_docs") -> list[Docu
         docs = loader.load()
         log.info("loaded_csv_excel_documents", count=len(docs))
         return docs
-    except (FileNotFoundError, Exception) as e:
+    except Exception as e:
         log.warning("csv_excel_load_error", data_dir=data_dir, error=str(e))
         return []
 
