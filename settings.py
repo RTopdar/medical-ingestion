@@ -26,7 +26,7 @@ class Settings:
     bm25_index_path: str = os.getenv("BM25_INDEX_PATH", "./data/bm25_index")
 
     # Ingestion
-    chunk_size: int = int(os.getenv("CHUNK_SIZE", "1024"))
+    chunk_size: int = int(os.getenv("CHUNK_SIZE", "512"))
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "100"))
     input_data_path: str = os.getenv("INPUT_DATA_PATH", "./data/input")
 

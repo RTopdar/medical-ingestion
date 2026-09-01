@@ -23,7 +23,7 @@ from langchain_core.documents import Document
 from tqdm import tqdm
 
 from logging_config import get_logger
-from ingestion.chunker import ChunkerConfig, ChunkerService
+from ingestion.chunker import ChunkerService
 from ingestion.embedder import Embedder
 from ingestion.loaders import LoaderFactory
 from models.vectors import Chunk, IngestedDocument
@@ -106,8 +106,7 @@ def filter_seen_documents(documents: list[Document], store: ChunkStore) -> list[
 def chunk_documents(documents: list[Document]) -> list[Document]:
     """Chunk documents for RAG."""
     log.info("chunking_documents", doc_count=len(documents))
-    config = ChunkerConfig(chunk_size=512, chunk_overlap=100)
-    chunker = ChunkerService(config=config)
+    chunker = ChunkerService()
     with tqdm(total=len(documents), desc="Chunking", unit="doc") as pbar:
         chunks = chunker.chunk(documents)
         pbar.update(len(documents))

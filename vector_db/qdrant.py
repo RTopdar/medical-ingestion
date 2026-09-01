@@ -16,7 +16,16 @@ from settings import settings
 from vector_db.base import VectorStore
 
 CONTENT_HASH_FIELD = "content_hash"
-KEYWORD_INDEX_FIELDS = ["source_type", "patient_mrn", "provider_specialty", "document_type", "tags"]
+KEYWORD_INDEX_FIELDS = [
+    "source_type",
+    "patient_mrn",
+    "provider_specialty",
+    "document_type",
+    "tags",
+    "section",
+    "element_type",
+    "page_number",
+]
 
 
 class QdrantVectorStore(VectorStore):
