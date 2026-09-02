@@ -132,6 +132,8 @@ def embed_and_store(chunks: list[Document]) -> None:
             model=embedder.model,
             embedding=embedding,
             metadata_=chunk.metadata,
+            section_path=chunk.metadata.get("section_path"),
+            page_number=chunk.metadata.get("page_number"),
         )
         for chunk, embedding, content_hash in zip(chunks, embeddings, content_hashes)
     ]
