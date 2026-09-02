@@ -41,15 +41,32 @@ class ChunkerService(BaseModel):
 
     @staticmethod
     def _split_by_markdown_headers(text: str) -> list[Document]:
-        """Split text by markdown headers, return Documents with section metadata."""
+        """Split text by markdown headers, return Documents with section metadata.
+
+        Extracts both:
+        - section_path: ordered list of heading texts [H1, H2, H3] (structured)
+        - section: flattened string "H1 > H2 > H3" (display-friendly)
+        """
         splitter = MarkdownHeaderTextSplitter(
             headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")]
         )
         md_splits = splitter.split_text(text)
         docs = []
         for split in md_splits:
+            # Build section_path as ordered list from metadata keys
+            # Keys are in order: h1, h2, h3 (matching headers_to_split_on order)
+            section_path = None
+            if split.metadata:
+                section_path = list(split.metadata.values())
+
+            # Keep flattened section string for backward compatibility
             section = " > ".join(split.metadata.values()) if split.metadata else None
-            docs.append(Document(page_content=split.page_content, metadata={"section": section}))
+
+            metadata = {
+                "section": section,
+                "section_path": section_path
+            }
+            docs.append(Document(page_content=split.page_content, metadata=metadata))
         return docs
 
     def _inject_section_context(self, chunks: list[Document]) -> list[Document]:
