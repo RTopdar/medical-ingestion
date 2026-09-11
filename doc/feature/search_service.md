@@ -53,3 +53,4 @@ Earlier planning (see IMPLEMENTATION_PLAN.md Future Enhancements) described a de
 - [Qdrant Infrastructure](qdrant_infrastructure.md)
 - [Similarity Search Demo](similarity_search_demo.md) — earlier dense-only demo, superseded as the production path by this module
 - [Hybrid Search Retrieval](hybrid_search_retrieval.md) — upstream RRF fusion, source of results this module enriches with citations
+- [LLM Answer Golden Set](llm_golden_set.md) — RAGAS-style eval dataset for this module's `answer()` output

@@ -1,0 +1,126 @@
+[
+  {
+    "query": "What haematological indices distinguished preschoolers with developmental language disorder from typically developing peers?",
+    "relevant_doc_ids": [
+      "PMC-13461268"
+    ],
+    "contexts": [
+      "This study compared peripheral haematological inflammation indices obtained from complete blood count (CBC) parameters between preschoolers with developmental language disorder (DLD) and typically developing peers (TD) and examined the role of peripheral inflammatory processes in preschoolers with DLD. One hundred twenty-seven children (61 with DLD and 66 TD) aged 36-60 months were included in this hospital-based, retrospective, case-controlled study. Complete blood count parameters and the resulting indices were compared: Neutrophil-to-lymphocyte ratio (NLR), platelet-to-lymphocyte ratio (PLR), systemic immune-inflammation index (SII), and systemic inflammation response index (SIRI). The DLD registered significantly lower lymphocyte, higher monocyte"
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "Preschoolers with developmental language disorder (DLD) showed lower lymphocyte counts and higher monocyte counts than typically developing peers, and the study compared this using NLR, PLR, SII, and SIRI indices derived from complete blood counts in 127 children.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "How do large language models help with chronic disease care according to the systematic review?",
+    "relevant_doc_ids": [
+      "PMC-13460802"
+    ],
+    "contexts": [
+      "Chronic diseases account for nearly three-quarters of global deaths and demand continuous, personalized long-term management; yet traditional care models often fall short in delivering such sustained support. Large language models, with advanced conversational and analytical capabilities, present promising opportunities to address the problem by offering scalable, interactive support. This study aimed to synthesize quantitative, qualitative, and mixed methods evidence on technical performance, application scenarios, and documented challenges of large language models in chronic disease care, and to critically evaluate these findings through a theory-driven, 3D framework"
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "Large language models offer scalable, interactive support for chronic disease management by providing continuous, personalized long-term care that traditional models struggle to sustain; the review synthesizes evidence on their technical performance, application scenarios, and challenges using a theory-driven 3D framework.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "Did the 300IR house dust mite immunotherapy tablet reduce corticosteroid use in allergic rhinitis patients?",
+    "relevant_doc_ids": [
+      "PMC-13460716"
+    ],
+    "contexts": [
+      "In a large randomized controlled trial, participants receiving 300IR HDM SLIT-tablet or placebo for ~12 months could use antihistamines (AH1), corticosteroids (CS - intranasal (INCS), or oral (OCS)) in a stepwise manner for subjective intolerable nasal/ocular symptoms. Of 1262 evaluable patients, ~60% used at least one CS at baseline: 300IR = 373 and placebo = 396. During treatment, the proportions of patients using RM, oral AH1, and CS and of days with RM use decreased in both groups, systematically in favor of 300IR. In moderate to severe HDM-AR patients, the 300IR HDM SLIT-tablet"
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "Yes. In the trial of 1262 evaluable patients with moderate to severe house dust mite allergic rhinitis, the 300IR HDM SLIT-tablet reduced rescue medication use, including corticosteroids, compared to placebo, with the reduction systematically favoring the 300IR group.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "What plant-derived molecule was used to control CAR-T cell activation and why?",
+    "relevant_doc_ids": [
+      "PMC-13460283"
+    ],
+    "contexts": [
+      "Precise regulation of chimeric antigen receptor (CAR)-T cell activity is essential to maximize efficacy and minimize toxicity. Here we present a novel inducible ON-switch CAR design that leverages plant hormone signaling components to achieve controllable T cell activation. By engineering a receptor system integrating the plant auxin receptor AFB1 with its co-receptor IAA7, we enable ligand-dependent interactions triggered by the plant hormone auxins. This design allows rapid, reversible, and dose-dependent T cell activation, resulting in potent cytotoxicity against B-cell lymphoma in vitro and in vivo."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The plant hormone auxin was used as a tunable ON-switch: engineering CAR-T cells with the plant auxin receptor AFB1 and co-receptor IAA7 lets auxin trigger ligand-dependent activation, giving rapid, reversible, dose-dependent control over T cell activity to maximize efficacy against B-cell lymphoma while minimizing toxicity.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "What was the evidence for AAV RPGR gene therapy's efficacy and safety in X-linked retinitis pigmentosa?",
+    "relevant_doc_ids": [
+      "PMC-13459258"
+    ],
+    "contexts": [
+      "X-linked retinitis pigmentosa (XLRP) represents a severe inherited retinal dystrophy associated with pathogenic variants in the retinitis pigmentosa GTPase regulator (RPGR) gene. Adeno-associated virus (AAV)-mediated RPGR gene augmentation is designed to preserve photoreceptor structure and function. The purpose of this study was to critically appraise and quantitatively synthesize the efficacy and safety evidence for AAV-RPGR gene therapy in X-linked retinitis pigmentosa. Scopus, PubMed, the Cochrane Library, ScienceDirect, and Google Scholar were searched from inception through July 11, 2026."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The study is a systematic review and meta-analysis synthesizing efficacy and safety evidence for AAV-mediated RPGR gene augmentation therapy, which aims to preserve photoreceptor structure and function in patients with X-linked retinitis pigmentosa caused by RPGR gene variants.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "Is left atrial volume index linked to complications after kidney transplantation?",
+    "relevant_doc_ids": [
+      "PMC-13460372"
+    ],
+    "contexts": [
+      "Pre-transplant echocardiography is routinely performed in kidney transplant candidates, although it remains unclear which parameters are associated with the broad spectrum of post-transplant complications beyond cardiovascular events. Left atrial volume index (LAVI) reflects chronic diastolic burden, and its relationship with overall post-transplant morbidity has not been well defined. In a single-center retrospective cohort of 242 adults undergoing first kidney-only transplantation (2020 to 2022) with pre-transplant echocardiography within 12 months, the main outcome was a composite of one-year post-transplant complications."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The study investigated whether pre-transplant left atrial volume index (LAVI), a marker of chronic diastolic burden, predicts one-year post-transplant morbidity in a cohort of 242 kidney transplant recipients, since this relationship had not been well defined before.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "What role does the gut microbiome play in breast cancer development and treatment response?",
+    "relevant_doc_ids": [
+      "PMC-13458463"
+    ],
+    "contexts": [
+      "Breast cancer remains the most frequently diagnosed malignancy among women worldwide, and increasing evidence indicates that the gut microbiome plays a significant role in tumor initiation, progression, and therapeutic response. Microbial dysbiosis and altered metabolite production have been associated with systemic inflammation, estrogen metabolism, immune regulation, and metabolic reprogramming, all of which contribute to breast cancer biology. The review focuses on four major pathways: immune modulation, estrobolome-mediated estrogen recycling, chronic inflammatory signaling, and microbial metabolite-driven epigenetic and metabolic regulation."
+    ],
+    "distractor_contexts": [
+      "Adenovirus vectors (AdVs) are widely used and have an advantage of large insert capacity compared with adeno-associated virus vectors. However, AdVs have scarcely been used in genome-editing knock-in strategies because of low efficiency.",
+      "Pre-transplant echocardiography is routinely performed in kidney transplant candidates, although it remains unclear which parameters are associated with the broad spectrum of post-transplant complications beyond cardiovascular events."
+    ],
+    "ground_truth": "The gut microbiome influences breast cancer through four pathways: immune modulation, estrobolome-mediated estrogen recycling, chronic inflammatory signaling, and microbial metabolite-driven epigenetic/metabolic regulation, with microbial dysbiosis linked to systemic inflammation and altered estrogen metabolism that affect tumor initiation, progression, and therapeutic response.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "How does the phenylketonuria adenovirus gene therapy improve knock-in efficiency?",
+    "relevant_doc_ids": [
+      "PMC-13461269"
+    ],
+    "contexts": [
+      "Adenovirus vectors (AdVs) are widely used and have an advantage of large insert capacity compared with adeno-associated virus vectors. However, AdVs have scarcely been used in genome-editing knock-in strategies because of low efficiency. Novel AdVs possessing a very large, 3.7 kb donor DNA fragment and six or eight multiplex gRNA expression units were developed for CRISPR/Cas9-mediated knock-in to correct a phenylalanine hydroxylase gene. We generated AdVs carrying an additional two gRNA units that cleave the donor DNA terminus in the AdV genome via native Cas9 or Cas9 nickase. The knock-in efficiency increased approximately twofold for both vectors and reached a maximum of 8% for native Cas9."
+    ],
+    "distractor_contexts": [
+      "Breast cancer remains the most frequently diagnosed malignancy among women worldwide, and increasing evidence indicates that the gut microbiome plays a significant role in tumor initiation, progression, and therapeutic response.",
+      "In a large randomized controlled trial, participants receiving 300IR HDM SLIT-tablet or placebo for ~12 months could use antihistamines, corticosteroids, or oral medication in a stepwise manner for subjective intolerable nasal/ocular symptoms."
+    ],
+    "ground_truth": "Efficiency was improved by adding two extra gRNA units that cleave the donor DNA terminus within the AdV genome using native Cas9 or Cas9 nickase, which roughly doubled knock-in efficiency for both vector types, reaching a maximum of 8% with native Cas9.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "What is the recommended dosing schedule for mRNA COVID-19 booster vaccines in immunocompromised adults?",
+    "relevant_doc_ids": [],
+    "contexts": [],
+    "distractor_contexts": [
+      "Precise regulation of chimeric antigen receptor (CAR)-T cell activity is essential to maximize efficacy and minimize toxicity. Here we present a novel inducible ON-switch CAR design that leverages plant hormone signaling components to achieve controllable T cell activation.",
+      "X-linked retinitis pigmentosa (XLRP) represents a severe inherited retinal dystrophy associated with pathogenic variants in the retinitis pigmentosa GTPase regulator (RPGR) gene."
+    ],
+    "ground_truth": "The provided documents do not contain information about mRNA COVID-19 booster dosing schedules for immunocompromised adults; the answer should state the information is not in the documents rather than guessing.",
+    "difficulty": "no_match"
+  },
+  {
+    "query": "What surgical approach is preferred for laparoscopic appendectomy in adult patients?",
+    "relevant_doc_ids": [],
+    "contexts": [],
+    "distractor_contexts": [
+      "Pre-transplant echocardiography is routinely performed in kidney transplant candidates, although it remains unclear which parameters are associated with the broad spectrum of post-transplant complications beyond cardiovascular events.",
+      "Chronic diseases account for nearly three-quarters of global deaths and demand continuous, personalized long-term management; yet traditional care models often fall short in delivering such sustained support."
+    ],
+    "ground_truth": "The provided documents do not describe laparoscopic appendectomy technique; the answer should say the information is not present rather than fabricating a surgical approach.",
+    "difficulty": "no_match"
+  }
+]

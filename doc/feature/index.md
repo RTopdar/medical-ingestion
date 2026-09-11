@@ -44,6 +44,8 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [BM25 Search Demo](/doc/feature/bm25_search_demo.md) — `scripts/bm25_search_demo.py`, throwaway sparse-only exploration script
 - [Hybrid Search Demo](/doc/feature/hybrid_search_demo.md) — `scripts/hybrid_search_demo.py`, throwaway dense+sparse fusion exploration script (no reranking)
 - [Alembic Migrations](/doc/feature/alembic_migrations.md) — `migrations/` + `alembic.ini`, Postgres schema migration tooling for the SQLModel tables in `models/vectors.py`
+- [Retrieval Golden Set](/doc/feature/retrieval_golden_set.md) — `eval/golden_set.py`, query -> relevant doc_id(s) eval dataset generator for retrieval ranking quality (BM25/hybrid/reranker)
+- [LLM Answer Golden Set](/doc/feature/llm_golden_set.md) — `eval/llm_golden_set.py`, RAGAS-style eval dataset generator for `SearchService.answer` (faithfulness/relevancy/precision/recall/correctness)
 
 ## Related
 
