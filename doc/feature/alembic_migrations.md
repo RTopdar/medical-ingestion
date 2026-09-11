@@ -20,6 +20,7 @@ status: stable
 - `alembic.ini` — Alembic config at project root.
 - `migrations/env.py` — wires Alembic's autogenerate to `SQLModel.metadata` by importing `models/vectors.py` (so table metadata is registered before autogenerate diffs against the live DB).
 - `migrations/versions/7468fa8fd0b2_baseline.py` — baseline revision capturing the schema as of the Postgres migration (chunks/failed_embeddings/documents tables).
+- `migrations/versions/32cedf430be3_add_section_path_and_page_number_fields_.py` — adds `section_path` (JSON, nullable) and `page_number` (Integer, nullable) columns to the `chunks` table to store hierarchical heading paths and source page numbers from PDF ingestion.
 - `migrations/script.py.mako` — revision template.
 
 ## Workflow (see AGENTS.md rule #6b / CLAUDE.md rule #6b)

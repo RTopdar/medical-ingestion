@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from langchain_core.documents import Document
-from langchain_docling.loader import DoclingLoader
 from docling.document_converter import DocumentConverter
+from docling.chunking import HybridChunker
 
 from ingestion.loaders.base import LoaderConfig, clean_text
 
@@ -68,33 +68,33 @@ class PDFLoaderService(BaseModel):
         }
 
     def load(self) -> list[Document]:
-        """Load all PDFs from directory and return Documents."""
+        """Load all PDFs from directory and return Documents.
+
+        Uses a single Docling `DocumentConverter().convert()` pass per file, then
+        chunks that same parsed document directly with `HybridChunker` (the same
+        chunker `DoclingLoader` uses internally). This avoids parsing each PDF
+        twice. The full hierarchical section path (ancestor chain across heading
+        levels, e.g. Part > Chapter > Section) is derived once per document from
+        the parsed structure and applied to every chunk from that document —
+        `HybridChunker`'s own per-chunk `headings` metadata only carries the
+        immediate heading, not the full ancestor chain, so it cannot replace this
+        traversal.
+        """
         pdf_files = sorted(self.config.source_dir.glob("*.pdf"))
         if not pdf_files:
             raise FileNotFoundError(f"No PDF files in {self.config.source_dir}")
 
+        chunker = HybridChunker()
         documents = []
         for pdf_path in pdf_files:
-            # Use raw Docling converter to get full document structure with heading levels
-            raw_docling_doc = None
-            try:
-                converter = DocumentConverter()
-                doc_result = converter.convert(str(pdf_path))
-                raw_docling_doc = doc_result.document
-            except Exception:
-                # Fall back to LangChain loader if raw conversion fails
-                pass
+            converter = DocumentConverter()
+            doc_result = converter.convert(str(pdf_path))
+            docling_doc = doc_result.document
 
-            # Extract section path from raw Docling document if available
-            section_path_data = {}
-            if raw_docling_doc:
-                section_path_data = self._extract_section_path_from_document(raw_docling_doc)
+            section_path_data = self._extract_section_path_from_document(docling_doc)
 
-            loader = DoclingLoader(file_path=str(pdf_path))
-            langchain_docs = loader.load()
-
-            for lc_doc in langchain_docs:
-                content = lc_doc.page_content
+            for chunk in chunker.chunk(docling_doc):
+                content = chunker.contextualize(chunk=chunk)
                 if self.config.clean_text:
                     content = clean_text(content)
 
@@ -105,34 +105,24 @@ class PDFLoaderService(BaseModel):
                     "tags": ["pdf", pdf_path.stem],
                     "page_number": None,
                     "element_type": "text",
-                    "section": None,
-                    "section_path": None,
+                    "section": section_path_data.get('section_text'),
+                    "section_path": section_path_data.get('section_path'),
                     "bbox": None,
                     "char_span": None,
                     "content_layer": None,
                 }
 
-                if "dl_meta" in lc_doc.metadata:
-                    dl_meta = lc_doc.metadata["dl_meta"]
-                    if "doc_items" in dl_meta and dl_meta["doc_items"]:
-                        first_item = dl_meta["doc_items"][0]
-                        if "prov" in first_item and first_item["prov"]:
-                            prov = first_item["prov"][0]
-                            metadata["page_number"] = prov.get("page_no")
-                            metadata["bbox"] = prov.get("bbox")
-                            metadata["char_span"] = prov.get("charspan")
-                        metadata["element_type"] = first_item.get("label", "text")
-                        metadata["content_layer"] = first_item.get("content_layer")
-
-                    if "headings" in dl_meta:
-                        # Use extracted section_path if available, otherwise fall back to flattened headings
-                        if section_path_data.get('section_path'):
-                            metadata["section_path"] = section_path_data['section_path']
-                            metadata["section"] = section_path_data['section_text']
-                        else:
-                            # Fallback: treat headings list as ordered path
-                            metadata["section"] = " > ".join(dl_meta["headings"])
-                            metadata["section_path"] = dl_meta["headings"] if dl_meta["headings"] else None
+                chunk_meta = chunk.meta.export_json_dict()
+                doc_items = chunk_meta.get("doc_items") or []
+                if doc_items:
+                    first_item = doc_items[0]
+                    prov = (first_item.get("prov") or [None])[0]
+                    if prov:
+                        metadata["page_number"] = prov.get("page_no")
+                        metadata["bbox"] = prov.get("bbox")
+                        metadata["char_span"] = prov.get("charspan")
+                    metadata["element_type"] = first_item.get("label", "text")
+                    metadata["content_layer"] = first_item.get("content_layer")
 
                 documents.append(Document(page_content=content, metadata=metadata))
 

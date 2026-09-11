@@ -118,9 +118,8 @@ class TestIntegrationPDFSectionPathAndPageNumber:
             ]
 
             # Verify section_path is properly extracted and preserved through pipeline
-            # At least some chunks should have section_path set
             chunks_with_section = [row for row in rows if row.section_path]
-            assert len(chunks_with_section) >= 0, "Should process chunks (may or may not have section_path)"
+            assert len(chunks_with_section) > 0, "Should have chunks with section_path set"
 
             # Verify that any section_path is a list with string elements
             for row in rows:
@@ -128,6 +127,10 @@ class TestIntegrationPDFSectionPathAndPageNumber:
                     assert isinstance(row.section_path, list), f"section_path should be list, got {type(row.section_path)}"
                     for item in row.section_path:
                         assert isinstance(item, str), f"section_path items should be strings, got {type(item)}"
+
+            # Verify hierarchy depth matches the 3-level heading nesting (Part > Chapter > Section)
+            max_depth = max(len(row.section_path) for row in chunks_with_section)
+            assert max_depth >= 3, f"Expected section_path depth >= 3 for 3-level nested PDF, got max depth {max_depth}"
 
     def test_pdf_2level_section_path_depth(self):
         """Test PDF with 2-level nesting (H1 > H2) → section_path propagates correctly."""
@@ -161,11 +164,18 @@ class TestIntegrationPDFSectionPathAndPageNumber:
             ]
 
             # Verify section_path is properly typed and preserved
+            chunks_with_section = [row for row in rows if row.section_path]
+            assert len(chunks_with_section) > 0, "Should have chunks with section_path set"
+
             for row in rows:
                 if row.section_path:
                     assert isinstance(row.section_path, list), f"section_path should be list"
                     for item in row.section_path:
                         assert isinstance(item, str), f"section_path items should be strings"
+
+            # Verify hierarchy depth matches the 2-level heading nesting (Methods > Study Design)
+            max_depth = max(len(row.section_path) for row in chunks_with_section)
+            assert max_depth >= 2, f"Expected section_path depth >= 2 for 2-level nested PDF, got max depth {max_depth}"
 
     def test_pdf_page_number_is_populated(self):
         """Test PDF chunks have page_number populated as int."""
