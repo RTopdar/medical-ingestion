@@ -20,6 +20,7 @@ dependencies = [
     "pypdf>=6.15.0",
     "python-dotenv>=1.2.2",
     "qdrant-client>=1.19.0",
+    "ragas>=0.4.3",
     "reportlab>=5.0.0",
     "sentence-transformers>=5.7.0",
     "sqlalchemy>=2.0.52",

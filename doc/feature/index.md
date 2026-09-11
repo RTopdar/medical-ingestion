@@ -45,7 +45,9 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [Hybrid Search Demo](/doc/feature/hybrid_search_demo.md) — `scripts/hybrid_search_demo.py`, throwaway dense+sparse fusion exploration script (no reranking)
 - [Alembic Migrations](/doc/feature/alembic_migrations.md) — `migrations/` + `alembic.ini`, Postgres schema migration tooling for the SQLModel tables in `models/vectors.py`
 - [Retrieval Golden Set](/doc/feature/retrieval_golden_set.md) — `eval/golden_set.py`, query -> relevant doc_id(s) eval dataset generator for retrieval ranking quality (BM25/hybrid/reranker)
-- [LLM Answer Golden Set](/doc/feature/llm_golden_set.md) — `eval/llm_golden_set.py`, RAGAS-style eval dataset generator for `SearchService.answer` (faithfulness/relevancy/precision/recall/correctness)
+- [LLM Answer Golden Set](/doc/feature/llm_golden_set.md) — `eval/llm_golden_set.py`, RAGAS-style eval dataset generator for `SearchService.answer` (faithfulness/relevancy/precision/recall/correctness), 37 items
+- [RAGAS Adapters](/doc/feature/ragas_adapters.md) — `eval/ragas_adapters.py`, wires RAGAS's judge LLM/embeddings onto ChatOpenRouter + Embedder (no new provider)
+- [RAGAS Eval Runner](/doc/feature/ragas_runner.md) — `eval/ragas_runner.py`, `RagasEvalRunner` scores the live pipeline against the LLM Answer Golden Set with 5 default + 2 optional RAGAS metrics
 
 ## Related
 

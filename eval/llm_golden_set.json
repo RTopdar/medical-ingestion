@@ -102,6 +102,327 @@
     "difficulty": "hard_distractor"
   },
   {
+    "query": "What did the systematic review find about nurse-led interventions for heart failure patients' quality of life?",
+    "relevant_doc_ids": [
+      "PMC-13459748"
+    ],
+    "contexts": [
+      "Nurses are pivotal in promoting self-care among patients with heart failure (HF), particularly by educating them on how to prevent potential complications and rehospitalisations. Meanwhile, optimal self-care in patients with heart failure is a positive predictor of improved physical and mental health, which are core domains of quality of life (QOL). This systematic review aims to identify available evidence on the effectiveness of nurse-led interventions in improving QOL and self-care among patients with heart failure."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The systematic review examined evidence on nurse-led interventions for heart failure patients, finding that such interventions promote self-care (through education on preventing complications and rehospitalisation), which in turn is a positive predictor of improved physical and mental health and overall quality of life.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "What consensus did experts reach on combining asparaginase and blinatumomab in frontline ALL treatment?",
+    "relevant_doc_ids": [
+      "PMC-13459976"
+    ],
+    "contexts": [
+      "Frontline blinatumomab combined with chemotherapy has resulted in improved outcomes in both pediatric and adult patients with acute lymphoblastic leukemia and is considered the new cornerstone of acute lymphoblastic leukemia treatment. The role of asparaginase in this new landscape of acute lymphoblastic leukemia treatment was extensively discussed by an expert panel of hemato-oncologists to reach a consensus on the optimal integration of both agents across diverse health care settings."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "An international expert panel of hemato-oncologists reached consensus on how to optimize the combined use of asparaginase and blinatumomab in frontline acute lymphoblastic leukemia regimens, given that blinatumomab plus chemotherapy is now considered the new cornerstone of ALL treatment for both pediatric and adult patients.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "How does the small-molecule cocktail 2SM promote heart regeneration?",
+    "relevant_doc_ids": [
+      "PMC-13457617"
+    ],
+    "contexts": [
+      "Adult mammalian cardiomyocytes exhibit limited regenerative capacity, which remains a major challenge for functional recovery after myocardial infarction (MI). Our previous study identified a cocktail of five small molecules (5SM) that promotes cardiomyocyte proliferation and heart regeneration; however, the complexity of this five-compound mixture poses significant barriers to clinical translation and mechanistic study. Here we present a simplified 2SM cocktail that induces an embryonic-like cardiomyocyte state to drive regeneration."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The 2SM cocktail, a simplified two-compound version of an earlier five-molecule (5SM) mixture, promotes heart regeneration by inducing cardiomyocytes into an embryonic-like state that restores their proliferative and regenerative capacity, addressing the clinical translation barriers posed by the more complex 5SM mixture.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "Can Mānuka honey's antimicrobial activity against respiratory pathogens be fully explained by sugar and methylglyoxal content?",
+    "relevant_doc_ids": [
+      "PMC-13460517"
+    ],
+    "contexts": [
+      "Respiratory bacterial infections remain a major cause of morbidity and mortality worldwide, and their treatment is increasingly complicated by antimicrobial resistance. Manuka honey has attracted interest as a potential alternative antimicrobial agent, although the extent to which antibacterial activity varies with Unique Manuka Factor (UMF) grade and the relative contribution of methylglyoxal (MGO) remain unclear. The unique Manuka Factor-dependent antimicrobial activity of Manuka honey against respiratory pathogens cannot be explained by sugar and methylglyoxal alone."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "No. The study found that Manuka honey's UMF-dependent antimicrobial activity against respiratory pathogens cannot be fully explained by sugar content and methylglyoxal (MGO) alone, implying additional factors contribute to its antibacterial effect.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "What outcomes did the 2-year prospective analysis find for cannabis-based medicinal products in endometriosis patients?",
+    "relevant_doc_ids": [
+      "PMC-13458955"
+    ],
+    "contexts": [
+      "Endometriosis affects up to 10% of biological females of reproductive age. Current treatment options are limited and often unsuitable for prolonged use. Cannabis-based medicinal products (CBMPs) have emerged as an alternative for pain management. To analyse changes in patient-reported outcome measures (PrOMs), prescribed opioid burden, and the prevalence of adverse events (AEs) in patients prescribed CBMPs for endometriosis over a 2-year period."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The 2-year prospective analysis studied cannabis-based medicinal products (CBMPs) prescribed for endometriosis pain, tracking changes in patient-reported outcome measures, prescribed opioid burden, and adverse event prevalence, since endometriosis affects up to 10% of reproductive-age biological females and existing treatments are often unsuitable for long-term use.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "What clinical severity spectrum does Respiratory Syncytial Virus (RSV) cause in infants?",
+    "relevant_doc_ids": [
+      "PMC-13459388"
+    ],
+    "contexts": [
+      "Respiratory Syncytial Virus (RSV) is a formidable respiratory pathogen that particularly affects infants and children. RSV presents with diverse clinical severity, most often causing mild upper airway symptoms but sometimes progressing to severe and potentially fatal lower respiratory tract disease. This virus has a major global public health impact and places a substantial strain on healthcare systems."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "RSV most often causes mild upper airway symptoms in infants and children, but can sometimes progress to severe and potentially fatal lower respiratory tract disease, making it a major global public health burden.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "What genetic cause underlies the fatal neonatal case of ADSL deficiency described in the case report?",
+    "relevant_doc_ids": [
+      "PMC-13459259"
+    ],
+    "contexts": [
+      "Neonatal adenylosuccinate lyase (ADSL) deficiency is a rare neurodegenerative disorder that is associated with epileptic encephalopathy, diffuse hypotonia, and respiratory failure. Loss of enzymatic function of ADSL leads to toxic buildup of succinylaminoimidazole carboxamide riboside (SAICAr) and succinyladenosine (S-Ado). We describe a female term neonate who presented with respiratory failure and encephalopathy caused by a novel homozygous variant."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The fatal neonatal case was caused by a novel homozygous variant in the ADSL gene, which led to loss of enzymatic function and toxic buildup of SAICAr and succinyladenosine, presenting as epileptic encephalopathy, diffuse hypotonia, and respiratory failure.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "How was the pediatric case of conus medullaris schistosomiasis diagnosed and managed?",
+    "relevant_doc_ids": [
+      "PMC-13459161"
+    ],
+    "contexts": [
+      "Conus medullaris intramedullary schistosomiasis is a rare disease, and may present acutely with serious neurological consequences. In its early stages, making a prompt diagnosis, and instituting appropriate treatment results in a good outcome. We share our experience of the diagnostic challenge, surgical treatment and outcome of care of this rare disease entity. A 7-year-old female patient, of Mada ethnicity, presented with acute conus-cauda equina syndrome."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The case report describes a 7-year-old female patient who presented with acute conus-cauda equina syndrome caused by conus medullaris schistosomiasis; the report discusses the diagnostic challenge and surgical treatment used, noting prompt diagnosis and treatment lead to good outcomes in this rare disease.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "What did the Canadian Hepatitis B Network registry study find about treatment gaps for chronic hepatitis B?",
+    "relevant_doc_ids": [
+      "PMC-13458430"
+    ],
+    "contexts": [
+      "Chronic hepatitis B (CHB) remains a leading cause of cirrhosis and hepatocellular carcinoma (HCC) worldwide, yet treatment uptake is suboptimal even in high-resource settings. This pan-Canadian study aimed to quantify treatment gaps within the Canadian Hepatitis B Network (CanHepB) Registry, compare characteristics of treatment-eligible but untreated patients to those receiving therapy, and assess patient and specialist-reported barriers to treatment."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The pan-Canadian CanHepB Registry study quantified treatment gaps for chronic hepatitis B, comparing treatment-eligible but untreated patients against those receiving therapy and assessing barriers to treatment, since CHB remains a leading cause of cirrhosis and hepatocellular carcinoma despite suboptimal treatment uptake even in high-resource settings.",
+    "difficulty": "easy"
+  },
+  {
+    "query": "Does the PNPLA3 I148M variant change how much liver fat tirzepatide removes in diabetic patients?",
+    "relevant_doc_ids": [
+      "PMC-13458421"
+    ],
+    "contexts": [
+      "The patatin-like phospholipase 3 (PNPLA3) I148M genetic variant is highly associated with steatotic liver disease. In the SURPASS-3 MRI substudy, tirzepatide significantly reduced liver fat content (LFC) versus insulin degludec in insulin-naive patients with type 2 diabetes with metabolic dysfunction-associated steatotic liver disease. The influence of PNPLA3 I148M allele on changes in LFC in response to tirzepatide treatment was examined post hoc."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "This post hoc analysis of the SURPASS-3 MRI substudy examined whether the PNPLA3 I148M genetic variant (associated with steatotic liver disease) modifies the liver fat content reduction seen with tirzepatide compared to insulin degludec in insulin-naive type 2 diabetes patients with metabolic dysfunction-associated steatotic liver disease.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "Is fear of hypoglycemia connected to disordered eating in people with type 1 diabetes?",
+    "relevant_doc_ids": [
+      "PMC-13460772"
+    ],
+    "contexts": [
+      "Individuals with type 1 diabetes (T1D) are at elevated risk for disordered eating behaviors (DEBs). When DEBs occur in someone with T1D, they have severe consequences, including increased risk of diabetes-related medical complications and early mortality related to poor glycemic control. Fear of Hypoglycemia (FoH) is a diabetes-specific factor that is assumed to play a role in DEBs in T1D, but this has not been adequately studied."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The study investigated whether Fear of Hypoglycemia (FoH), a diabetes-specific psychological factor, contributes to disordered eating behaviors in type 1 diabetes patients, since DEBs in T1D carry severe consequences including medical complications and early mortality from poor glycemic control, and FoH's role had not been adequately studied before.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "What trends emerged from the bibliometric study of stroke mortality research since 1961?",
+    "relevant_doc_ids": [
+      "PMC-13461127"
+    ],
+    "contexts": [
+      "This study conducts a comprehensive bibliometric analysis of global stroke mortality research, by assessing publication trends, top authors, institutions, countries, and thematic analysis of keywords. We performed a bibliometric analysis using Web of Science data retrieved on December 21, 2024, based on title searches for stroke mortality, CVA mortality, cerebral infarction mortality, and cerebrovascular accident mortality."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The bibliometric analysis of stroke mortality research spanning 1961-2024 used Web of Science data to assess publication trends, leading authors, institutions, and countries, along with a thematic keyword analysis, based on searches for terms like stroke mortality and cerebrovascular accident mortality.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "How do antibody-associated targeted chimeras achieve targeted protein degradation?",
+    "relevant_doc_ids": [
+      "PMC-13460284"
+    ],
+    "contexts": [
+      "Targeted chimeras have reshaped therapeutic design by converting target recognition into active degradation. As one of the most clinically established therapeutic modalities, antibodies provide high affinity and specificity to the protein of interest. Antibody-associated targeted chimeras (AbTACs) are emerging as an important class of biologic degraders for targeted protein elimination, particularly of extracellular and membrane-bound targets."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "Antibody-associated targeted chimeras (AbTACs) combine antibodies' high affinity and specificity for target recognition with degradation machinery, converting that recognition into active protein elimination, and are particularly suited to extracellular and membrane-bound targets.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "Why has dual-line genome-scale CRISPR screening been hard to apply reliably in insects?",
+    "relevant_doc_ids": [
+      "PMC-13460280"
+    ],
+    "contexts": [
+      "Pooled CRISPR screening enables genome-scale functional gene discovery by linking genetic perturbations to cellular phenotypes. However, its application in insects remains limited, as systematic differences often obscure the universal functional signals and compromise the reliable identification of genetic regulators. We found that Cas9 genomic integration was associated with distinct transcriptional states, contributing to this problem."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "Genome-scale CRISPR screening in insects has been unreliable because systematic differences (including distinct transcriptional states associated with Cas9 genomic integration) obscure universal functional signals, compromising identification of genetic regulators; a dual-line screening approach was developed to address this.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "What does systems genetics analysis reveal about the molecular pathology of early-onset colorectal cancer?",
+    "relevant_doc_ids": [
+      "PMC-13460241"
+    ],
+    "contexts": [
+      "Colorectal cancer (CRC) is the second most common cause of cancer-related deaths in the United States. The incidence of early-onset CRC (EOCRC) has been rising in the past few decades. Given the multifaceted nature of EOCRC, the genetic and environmental factors contributing to this malignancy have remained elusive. Systems genetics is a multi-omics tool that analyzes multiple genes as a collective network."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The study applied systems genetics, a multi-omics network approach analyzing multiple genes collectively, to investigate the molecular pathology of early-onset colorectal cancer (EOCRC), whose rising incidence and multifaceted genetic/environmental contributors had remained poorly understood.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "Can machine learning improve autoverification accuracy for complete blood count testing over rule-based systems?",
+    "relevant_doc_ids": [
+      "PMC-13458867"
+    ],
+    "contexts": [
+      "Autoverification improves laboratory efficiency by reducing manual reviews; however, rule-based systems may lack flexibility, particularly in complete blood count (CBC) testing. Machine learning (ML) can potentially enhance performance by recognizing complex patterns in laboratory data. Therefore, we aimed to evaluate ML-based autoverification systems in classifying CBC results compared to traditional rule-based methods."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The study evaluated whether machine learning-based autoverification systems outperform traditional rule-based methods in classifying complete blood count (CBC) results, motivated by the inflexibility of rule-based systems and ML's potential to recognize complex patterns in lab data.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "How do endogenous proteins improve delivery of cancer nanomedicines?",
+    "relevant_doc_ids": [
+      "PMC-13458888"
+    ],
+    "contexts": [
+      "Nanoparticle performance Nanomedicine offers a promising approach for cancer therapy by enabling the targeted delivery of therapeutic agents to malignant tissues while minimizing off-target effects and systemic toxicities in healthy organs. After more than three decades of intensive research, 17 cancer nanomedicine products have received regulatory approval worldwide, with Doxil and Abraxane among the most prominent examples."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "The paper discusses leveraging endogenous proteins to improve cancer nanomedicine delivery, aiming to enable more targeted delivery of therapeutics to malignant tissue while minimizing off-target toxicity, building on more than three decades of research that has yielded 17 regulatory-approved cancer nanomedicine products including Doxil and Abraxane.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "What imaging technique was used to map striatal neurodegeneration in Huntington's disease?",
+    "relevant_doc_ids": [
+      "PMC-13461150"
+    ],
+    "contexts": [
+      "Huntington's disease (HD) is an inherited neurodegenerative disorder characterised by progressive cognitive and motor decline driven by basal ganglia (BG) atrophy. Clinical trials of novel disease-modifying therapies are ongoing, creating a need for sensitive non-invasive imaging biomarkers. Soma and Neurite Density Imaging (SANDI) is a multi-shell diffusion MRI model that estimates intracellular signal fractions from striatal tissue."
+    ],
+    "distractor_contexts": [],
+    "ground_truth": "Soma and Neurite Density Imaging (SANDI), a multi-shell diffusion MRI model estimating intracellular signal fractions, was used to map striatal neurodegeneration in Huntington's disease in vivo, addressing the need for sensitive non-invasive imaging biomarkers for ongoing disease-modifying therapy trials.",
+    "difficulty": "medium"
+  },
+  {
+    "query": "What role does Ecrg4 play in dendritic spine abnormalities linked to schizophrenia?",
+    "relevant_doc_ids": [
+      "PMC-13461148"
+    ],
+    "contexts": [
+      "Dendritic spine dysfunction may contribute to the etiology and symptom expression of neuropsychiatric disorders. The intimate relationship between spine morphology and function suggests that decoding disease-related abnormalities from spine morphology can aid in developing synapse-targeted interventions. Here, we describe a population analysis of dendritic spine nanostructure applied to cultured neurons from mouse models, revealing a schizophrenia-linked role for Ecrg4."
+    ],
+    "distractor_contexts": [
+      "Autoverification improves laboratory efficiency by reducing manual reviews; however, rule-based systems may lack flexibility, particularly in complete blood count (CBC) testing.",
+      "Respiratory Syncytial Virus (RSV) is a formidable respiratory pathogen that particularly affects infants and children, presenting with diverse clinical severity."
+    ],
+    "ground_truth": "Population analysis of dendritic spine nanostructure in cultured neurons from mouse models revealed that Ecrg4 has a schizophrenia-linked role in dendritic spine abnormalities, supporting the idea that spine morphology defects contribute to neuropsychiatric disorder etiology and could inform synapse-targeted interventions.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "How does chronic antibiotic exposure during weaning affect oral microbiota development in piglets?",
+    "relevant_doc_ids": [
+      "PMC-13459214"
+    ],
+    "contexts": [
+      "The use of antibiotics in swine production during the stressful weaning period is widespread. While their impact on the gut microbiome is documented, their effect on the developing oral microbiota, a critical gateway to systemic health, remains poorly understood. This study investigated how chronic exposure to tylosin (TYL) or a chlortetracycline-sulfadiazine-penicillin combination (CSP) shapes oral microbiota assembly during weaning."
+    ],
+    "distractor_contexts": [
+      "A population-specific genomic reference panel for Taiwan (NHRI-RP-1) was developed based on 2,561 whole genome sequences to support genome-wide association studies in the Han population.",
+      "Targeted chimeras have reshaped therapeutic design by converting target recognition into active degradation, with antibodies providing high affinity and specificity."
+    ],
+    "ground_truth": "Chronic exposure to tylosin or a chlortetracycline-sulfadiazine-penicillin combination during weaning disrupts oral microbiota assembly in piglets, a previously poorly understood effect compared to antibiotics' well-documented impact on the gut microbiome.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "What is the purpose of the NHRI-RP-1 genomic reference panel for Taiwan?",
+    "relevant_doc_ids": [
+      "PMC-13459345"
+    ],
+    "contexts": [
+      "To enhance the efficiency of identifying rare variants within the Taiwanese population and to support genome-wide association studies (GWAS) and imputation studies for genetic risk prediction in the Han population, we have developed the National Health Research Institutes (NHRI) reference panel (NHRI-RP-1), based on 2,561 whole genome sequences from in-house NHRI datasets."
+    ],
+    "distractor_contexts": [
+      "The use of antibiotics in swine production during the stressful weaning period is widespread, and this study investigated effects on oral microbiota assembly in piglets.",
+      "Huntington's disease is an inherited neurodegenerative disorder characterised by progressive cognitive and motor decline driven by basal ganglia atrophy."
+    ],
+    "ground_truth": "NHRI-RP-1 is a population-specific genomic reference panel for Taiwan, built from 2,561 whole genome sequences, designed to improve rare variant identification in the Taiwanese population and support genome-wide association and imputation studies for genetic risk prediction in the Han population.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "What therapeutic target was studied for treating postoperative pain via nociceptive sensory neurons?",
+    "relevant_doc_ids": [
+      "PMC-13460279"
+    ],
+    "contexts": [
+      "Postoperative pain impairs patients' quality of life. Mechanisms underlying postoperative pain remain incompletely understood. We investigated postoperative pain in a mouse model of skin plus deep tissue incision. The incised tissues release a plethora of inflammatory mediators, cytokines, and chemokines, and we found that targeting CXCR2 in nociceptive sensory neurons offers novel therapeutic potential for postoperative pain."
+    ],
+    "distractor_contexts": [
+      "The Asia-Pacific League of Associations for Rheumatology released consensus recommendations on managing systemic juvenile idiopathic arthritis for a multidisciplinary task force.",
+      "Nanomedicine offers a promising approach for cancer therapy by enabling targeted delivery of therapeutic agents to malignant tissues while minimizing off-target toxicity."
+    ],
+    "ground_truth": "CXCR2 was identified as a therapeutic target in nociceptive sensory neurons for treating postoperative pain, based on a mouse model of skin plus deep tissue incision showing incised tissues release inflammatory mediators, cytokines, and chemokines that act through this receptor.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "What updated guidance did the Asia-Pacific rheumatology consensus provide for systemic juvenile idiopathic arthritis?",
+    "relevant_doc_ids": [
+      "PMC-13458428"
+    ],
+    "contexts": [
+      "The unique characteristics of the Asia Pacific called for the development of pragmatic and viable guidelines for the management of juvenile idiopathic arthritis (JIA). These consensus recommendations represent the second part of the guideline intending to offer an updated and regionally relevant framework for the management of systemic JIA (sJIA)/juvenile Still's disease, developed by a multidisciplinary task force of 35 members."
+    ],
+    "distractor_contexts": [
+      "We investigated postoperative pain in a mouse model of skin plus deep tissue incision and found that targeting CXCR2 in nociceptive sensory neurons offers therapeutic potential.",
+      "This study conducts a comprehensive bibliometric analysis of global stroke mortality research using Web of Science data retrieved in December 2024."
+    ],
+    "ground_truth": "A 35-member multidisciplinary task force of the Asia-Pacific League of Associations for Rheumatology developed the second part of updated consensus recommendations providing a pragmatic, regionally relevant framework for managing systemic juvenile idiopathic arthritis (juvenile Still's disease), tailored to the unique characteristics of the Asia Pacific region.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "How was a child health evidence dashboard co-designed to support early years decision making?",
+    "relevant_doc_ids": [
+      "PMC-13461270"
+    ],
+    "contexts": [
+      "Research has trialled many initiatives to support caregivers to shape young children's health behaviours. However, translating evidence to public health practice and policy is a challenge, in part due to access to such evidence. We aimed to co-design a child health evidence dashboard, and to understand the expected enablers and barriers to use of the dashboard with next-users such as Australian child service managers."
+    ],
+    "distractor_contexts": [
+      "School participation is frequency and involvement from person-environment transactions, per the ICF framework, and this study explored immersive virtual reality to improve school participation for children with ADHD.",
+      "The patatin-like phospholipase 3 (PNPLA3) I148M genetic variant is highly associated with steatotic liver disease in patients with type 2 diabetes."
+    ],
+    "ground_truth": "The child health evidence dashboard was co-designed with next-users such as Australian child service managers to address the challenge of translating early-years health research into public health practice and policy, and the study also examined expected enablers and barriers to the dashboard's adoption.",
+    "difficulty": "hard_distractor"
+  },
+  {
+    "query": "Can immersive virtual reality improve school participation outcomes for children with ADHD?",
+    "relevant_doc_ids": [
+      "PMC-13461272"
+    ],
+    "contexts": [
+      "School participation is frequency and involvement from person-environment transactions, not diagnosis, per the International Classification of Functioning, Disability and Health (ICF) and the family of participation-related constructs (fPRC). In this framework, the environmental and child determinants of school participation were explored using immersive virtual reality as an intervention approach for children with ADHD."
+    ],
+    "distractor_contexts": [
+      "Research has trialled many initiatives to support caregivers to shape young children's health behaviours, and this study co-designed a child health evidence dashboard for public health use.",
+      "Colorectal cancer is the second most common cause of cancer-related deaths in the United States, with rising incidence of early-onset disease."
+    ],
+    "ground_truth": "The study explored immersive virtual reality as an approach to improve school participation-related constructs in children with ADHD, framing participation per the ICF model as person-environment transactions rather than diagnosis-based, and examining both environmental and child-level determinants.",
+    "difficulty": "hard_distractor"
+  },
+  {
     "query": "What is the recommended dosing schedule for mRNA COVID-19 booster vaccines in immunocompromised adults?",
     "relevant_doc_ids": [],
     "contexts": [],
@@ -121,6 +442,28 @@
       "Chronic diseases account for nearly three-quarters of global deaths and demand continuous, personalized long-term management; yet traditional care models often fall short in delivering such sustained support."
     ],
     "ground_truth": "The provided documents do not describe laparoscopic appendectomy technique; the answer should say the information is not present rather than fabricating a surgical approach.",
+    "difficulty": "no_match"
+  },
+  {
+    "query": "What dietary guidelines are recommended for managing gout flares in elderly patients?",
+    "relevant_doc_ids": [],
+    "contexts": [],
+    "distractor_contexts": [
+      "The unique characteristics of the Asia Pacific called for the development of pragmatic and viable guidelines for the management of juvenile idiopathic arthritis, developed by a multidisciplinary task force.",
+      "Nurses are pivotal in promoting self-care among patients with heart failure, particularly by educating them on how to prevent potential complications and rehospitalisations."
+    ],
+    "ground_truth": "The provided documents do not contain dietary guidance for managing gout flares in elderly patients; the answer should state the information is not present rather than fabricating dietary recommendations.",
+    "difficulty": "no_match"
+  },
+  {
+    "query": "What is the standard vaccination schedule for pediatric meningococcal disease prevention?",
+    "relevant_doc_ids": [],
+    "contexts": [],
+    "distractor_contexts": [
+      "Respiratory Syncytial Virus (RSV) is a formidable respiratory pathogen that particularly affects infants and children, presenting with diverse clinical severity from mild to fatal.",
+      "Neonatal adenylosuccinate lyase (ADSL) deficiency is a rare neurodegenerative disorder associated with epileptic encephalopathy, diffuse hypotonia, and respiratory failure."
+    ],
+    "ground_truth": "The provided documents do not describe a meningococcal vaccination schedule for pediatric patients; the answer should indicate the information is not present rather than inventing a schedule.",
     "difficulty": "no_match"
   }
 ]

@@ -1,6 +1,7 @@
 """Embedding service backed by OpenRouter's /embeddings endpoint."""
 
 import requests
+from langchain_core.embeddings import Embeddings
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from models.vectors import Chunk
@@ -13,10 +14,14 @@ class EmbedderError(RuntimeError):
     """Raised when the OpenRouter embeddings request fails."""
 
 
-class Embedder:
+class Embedder(Embeddings):
     """Generates text embeddings via OpenRouter, using Postgres (ChunkStore) as a
     read-only cache to skip repeat API calls. Does not persist embeddings itself —
-    that's the ingest script's job (one Chunk row per occurrence, plus Qdrant sync)."""
+    that's the ingest script's job (one Chunk row per occurrence, plus Qdrant sync).
+
+    Implements langchain_core.embeddings.Embeddings so this same instance can be
+    wrapped by ragas.embeddings.LangchainEmbeddingsWrapper for eval scoring
+    (eval/ragas_adapters.py), without a second embeddings implementation."""
 
     def __init__(
         self,
@@ -87,6 +92,14 @@ class Embedder:
         can build Chunk rows without recomputing keys."""
         hashes = [Chunk.make_content_hash(self.model, text) for text in texts]
         return self.embed(texts), hashes
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """langchain_core.embeddings.Embeddings interface method, for ragas/LangChain callers."""
+        return self.embed(texts)
+
+    def embed_query(self, text: str) -> list[float]:
+        """langchain_core.embeddings.Embeddings interface method, for ragas/LangChain callers."""
+        return self.embed_one(text)
 
     @retry(
         stop=stop_after_attempt(3),

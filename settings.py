@@ -18,6 +18,7 @@ class Settings:
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "openai/text-embedding-3-small")
     embedding_batch_size: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "100"))
     reranker_model: str = os.getenv("RERANKING_MODEL", "nvidia/llama-nemotron-rerank-vl-1b-v2:free")
+    ragas_judge_model: str | None = os.getenv("RAGAS_JUDGE_MODEL") or None
 
     # Vector DB
     vector_db_type: str = os.getenv("VECTOR_DB_TYPE", "qdrant")

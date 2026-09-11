@@ -54,3 +54,6 @@ dummy_docs/
 
 # Local data (sqlite db, qdrant bind-mount storage, bm25 index)
 data/
+
+# RAGAS eval run outputs (artifacts, not source)
+eval/results/
