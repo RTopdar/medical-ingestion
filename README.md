@@ -145,7 +145,7 @@ ingestion/                  — data extraction & parsing (✓ complete)
 models/                     — Pydantic + SQLModel data contracts (✓ complete)
   ├── documents.py          — docstring pointer (langchain_core.documents.Document now used)
   ├── vectors.py            — Chunk, FailedEmbedding, IngestedDocument (SQLModel table=True)
-  ├── rag.py                — RAGQuery, RAGResponse, RetrievedContext (planned wiring)
+  ├── rag.py                — RAGQuery, RAGResponse, RetrievedContext (✓ in use)
   └── clinical_trial.py     — ClinicalTrial, Eligibility (SQLModel table=True)
 
 storage/                    — relational persistence & cache (✓ complete)
@@ -169,7 +169,11 @@ scripts/
   ├── ingest_documents.py   — end-to-end load → chunk → embed → store → Qdrant sync
   └── seed_clinical_trials_db.py — fetch + seed clinical trials
 
-rag/                        — retrieval + generation (planned, not yet wired)
+retrieval/                  — retrieval + generation (✓ complete)
+  ├── bm25.py               — BM25Index (sparse lexical search, rebuilt per ingest)
+  ├── hybrid.py             — HybridRetriever (RRF fusion of dense + sparse results)
+  ├── reranker.py           — Reranker (cross-encoder rerank via OpenRouter)
+  └── search.py             — SearchService (orchestrates full RAG pipeline)
 ```
 
 ## Configuration
