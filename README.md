@@ -174,6 +174,12 @@ retrieval/                  — retrieval + generation (✓ complete)
   ├── hybrid.py             — HybridRetriever (RRF fusion of dense + sparse results)
   ├── reranker.py           — Reranker (cross-encoder rerank via OpenRouter)
   └── search.py             — SearchService (orchestrates full RAG pipeline)
+
+eval/                       — golden-set eval + RAGAS scoring (✓ complete)
+  ├── golden_set.py         — retrieval-ranking golden set generator/data
+  ├── llm_golden_set.py     — 37-item LLM answer-generation golden set (RAGAS-style)
+  ├── ragas_runner.py       — RagasEvalRunner, scores live SearchService pipeline
+  └── ragas_adapters.py     — wires RAGAS judge LLM/embeddings onto OpenRouter stack
 ```
 
 ## Configuration
@@ -267,6 +273,23 @@ uv run main.py
 
 To integrate into your app: `from retrieval.search import SearchService` + `service.search(query)` returns chunks + LLM response.
 
+### Evaluation
+
+```bash
+# Smoke test (3 golden-set items)
+uv run python -m eval.ragas_runner --limit 3
+
+# Full run against the 37-item LLM answer golden set
+uv run python -m eval.ragas_runner
+
+# Optional flags
+uv run python -m eval.ragas_runner --include-optional --judge-model <model_slug>
+```
+
+`RagasEvalRunner` runs each golden-set query through the live `SearchService` pipeline (embed → retrieve → rerank → answer) and scores the result with RAGAS: Faithfulness, ResponseRelevancy, LLMContextPrecisionWithReference, LLMContextRecall, AnswerCorrectness by default, plus opt-in NoiseSensitivity and ContextEntityRecall via `--include-optional`. Results are written to `eval/results/` (gitignored) as `.json`/`.csv`.
+
+See [RAGAS Eval Runner](/doc/feature/ragas_runner.md) and [RAGAS Adapters](/doc/feature/ragas_adapters.md).
+
 ## Requirements
 
 ### System
@@ -336,6 +359,10 @@ uv run scripts/ingest_documents.py | jq '.event'
 - **[Hybrid Search](/doc/feature/hybrid_search_retrieval.md)** — dense (Qdrant) + sparse (BM25), RRF fusion
 - **[Cross-Encoder Reranker](/doc/feature/reranker.md)** — second-pass reorder via OpenRouter
 - **[Search Service](/doc/feature/search_service.md)** — retrieval + grounded LLM answer
+- **[Retrieval Golden Set](/doc/feature/retrieval_golden_set.md)** — query → relevant doc_id(s) eval dataset for retrieval ranking quality
+- **[LLM Answer Golden Set](/doc/feature/llm_golden_set.md)** — 37-item RAGAS-style golden set for SearchService.answer
+- **[RAGAS Adapters](/doc/feature/ragas_adapters.md)** — wires RAGAS's judge LLM/embeddings onto the OpenRouter stack
+- **[RAGAS Eval Runner](/doc/feature/ragas_runner.md)** — scores the live pipeline against the LLM golden set
 
 **Troubleshooting:**
 
