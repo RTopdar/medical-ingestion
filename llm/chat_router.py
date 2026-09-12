@@ -40,7 +40,7 @@ class ChatRouterService:
                 LiteLLMDeployment(
                     model_name="openrouter-primary",
                     litellm_params=LiteLLMModelParams(
-                        model=f"openrouter/{settings.chat_model}",
+                        model=settings.chat_model,
                         api_key=settings.openrouter_api_key,
                         api_base=settings.openrouter_base_url,
                     ),

@@ -18,7 +18,7 @@ def _fake_settings() -> Settings:
         _env_file=None,
         openrouter_api_key="or-key",
         openrouter_base_url="https://openrouter.ai/api/v1",
-        chat_model="meta-llama/llama-3-70b",
+        chat_model="openrouter/meta-llama/llama-3-70b",
         groq_api_key="gsk-key",
         groq_chat_model="groq/llama-3.3-70b-versatile",
     )
@@ -71,7 +71,7 @@ class TestChatRouterServiceFromSettings:
         names = [d.model_name for d in service.config.deployments]
         assert names == ["openrouter-primary", "groq-fallback"]
         primary = service.config.deployments[0].litellm_params
-        assert primary.model == "openrouter/meta-llama/llama-3-70b"
+        assert primary.model == "openrouter/meta-llama/llama-3-70b"  # matches settings.chat_model verbatim, no added prefix
         assert primary.api_key == "or-key"
         fallback = service.config.deployments[1].litellm_params
         assert fallback.model == "groq/llama-3.3-70b-versatile"
