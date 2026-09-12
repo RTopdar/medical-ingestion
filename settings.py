@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Groq (chat fallback provider)
     groq_api_key: str = ""
-    groq_chat_model: str = "groq/llama-3.3-70b-versatile"
+    groq_chat_model: str = "groq/openai/gpt-oss-120b"
 
     # Vector DB
     vector_db_type: str = "qdrant"

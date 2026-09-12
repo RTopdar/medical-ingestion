@@ -21,7 +21,7 @@ class TestSettingsDefaults:
         s = Settings(_env_file=None)
         assert s.openrouter_api_key == ""
         assert s.chat_model == "openrouter/meta-llama/llama-2-7b-chat"
-        assert s.groq_chat_model == "groq/llama-3.3-70b-versatile"
+        assert s.groq_chat_model == "groq/openai/gpt-oss-120b"
         assert s.embedding_batch_size == 100
         assert s.chunk_size == 512
 
