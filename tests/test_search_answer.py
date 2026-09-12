@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from retrieval.search import SearchService
 
