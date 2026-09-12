@@ -62,5 +62,7 @@ class Settings(BaseSettings):
             f")"
         )
 
+    __str__ = __repr__
+
 
 settings = Settings()

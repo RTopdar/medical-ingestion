@@ -77,6 +77,14 @@ class TestChatRouterServiceFromSettings:
         assert fallback.model == "groq/llama-3.3-70b-versatile"
         assert fallback.api_key == "gsk-key"
 
+    def test_from_settings_degrades_to_openrouter_only_without_groq_key(self):
+        settings = _fake_settings()
+        settings = settings.model_copy(update={"groq_api_key": ""})
+        service = ChatRouterService.from_settings(settings)
+        assert service.config.fallback_chain == ["openrouter-primary"]
+        names = [d.model_name for d in service.config.deployments]
+        assert names == ["openrouter-primary"]
+
 
 class TestChatRouterServiceCompletion:
     def test_complete_calls_router_completion_with_primary_model_name(self):

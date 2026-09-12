@@ -59,11 +59,19 @@ class TestChatRouterConfig:
                 fallback_chain=["primary", "nonexistent"],
             )
 
-    def test_fallback_chain_too_short_rejected(self):
+    def test_single_deployment_chain_accepted(self):
+        """A 1-element chain is valid — e.g. Groq unavailable, OpenRouter-only."""
+        cfg = ChatRouterConfig(
+            deployments=[self._deployment("primary")],
+            fallback_chain=["primary"],
+        )
+        assert cfg.fallback_chain == ["primary"]
+
+    def test_empty_fallback_chain_rejected(self):
         with pytest.raises(ValidationError):
             ChatRouterConfig(
                 deployments=[self._deployment("primary")],
-                fallback_chain=["primary"],
+                fallback_chain=[],
             )
 
     def test_empty_deployments_rejected(self):

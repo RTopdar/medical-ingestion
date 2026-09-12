@@ -44,7 +44,7 @@ class ChatRouterConfig(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
 
     deployments: list[LiteLLMDeployment] = Field(min_length=1)
-    fallback_chain: list[str] = Field(min_length=2)
+    fallback_chain: list[str] = Field(min_length=1)
 
     @model_validator(mode="after")
     def chain_references_known_deployments(self) -> "ChatRouterConfig":

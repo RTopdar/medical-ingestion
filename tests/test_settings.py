@@ -47,3 +47,9 @@ class TestSettingsDefaults:
         s = Settings(_env_file=None, openrouter_api_key="secret-value-123")
         assert "secret-value-123" not in repr(s)
         assert "***" in repr(s)
+
+    def test_str_does_not_leak_api_key(self, monkeypatch):
+        s = Settings(_env_file=None, openrouter_api_key="secret-value-123")
+        assert "secret-value-123" not in str(s)
+        assert "secret-value-123" not in f"{s}"
+        assert "***" in str(s)
