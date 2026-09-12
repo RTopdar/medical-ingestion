@@ -2,6 +2,21 @@
 
 Production-ready RAG pipeline for medical documents. Ingest PDFs/JSON/SQL → parse → chunk → embed (OpenRouter) → store (Postgres cache + Qdrant) → hybrid search (dense + BM25) → rerank (cross-encoder) → generate (LLM). Includes RAGAS evaluation pipeline with golden-set scoring.
 
+## Table of Contents
+
+- [Features](#features)
+- [Design Goals](#design-goals)
+- [Quick Start](#quick-start)
+- [Development Standards & Documentation](#development-standards--documentation)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Evaluation Results](#evaluation-results)
+- [Requirements](#requirements)
+- [Development](#development)
+- [Documentation Index](#documentation-index)
+- [Learning Outcomes](#learning-outcomes)
+
 ## Features
 
 ### Document Ingestion
@@ -295,6 +310,30 @@ uv run python -m eval.ragas_runner --include-optional --judge-model <model_slug>
 `RagasEvalRunner` runs each golden-set query through the live `SearchService` pipeline (embed → retrieve → rerank → answer) and scores the result with RAGAS: Faithfulness, ResponseRelevancy, LLMContextPrecisionWithReference, LLMContextRecall, AnswerCorrectness by default, plus opt-in NoiseSensitivity and ContextEntityRecall via `--include-optional`. Results are written to `eval/results/` (gitignored) as `.json`/`.csv`.
 
 See [RAGAS Eval Runner](/doc/feature/ragas_runner.md) and [RAGAS Adapters](/doc/feature/ragas_adapters.md).
+
+## Evaluation Results
+
+**37-item LLM answer-generation golden set, scored against live SearchService pipeline (Sept 2026):**
+
+| Metric | Overall | Easy | Medium | Hard (Distractor) | No Match |
+|--------|---------|------|--------|-------------------|----------|
+| **Faithfulness** | 0.857 | 0.976 | 1.000 | 0.000 | NaN |
+| **Answer Relevancy** | 0.764 | 0.685 | 0.802 | 0.707 | 0.998 |
+| **Context Precision** | 1.000 | 1.000 | NaN | NaN | NaN |
+| **Context Recall** | 0.981 | 0.955 | 1.000 | 1.000 | 1.000 |
+| **Answer Correctness** | 0.593 | 0.315 | 0.872 | NaN | NaN |
+
+**Key findings:**
+- Retrieval strong (recall 0.981, precision 1.0) — hybrid search + reranking working well
+- Generation tracking varies by query difficulty — medium/hard queries diverge from reference phrasing/structure
+- **Hard distractor tier caveat:** faithfulness=0 likely due to judge LLM instability (see caveats below)
+
+**Caveats — metrics not fully reliable:**
+- **Judge LLM flakiness** — OpenRouter free/auto-routed models swap mid-run; some calls return moderation stubs ("User response: safe") instead of real judgment, causing false 0/NaN scores on faithfulness and answer correctness
+- **No fixed model pinned** — `RAGAS_JUDGE_MODEL` env var empty, falling back to variable chat model. To fix: set `RAGAS_JUDGE_MODEL` to one deterministic OpenRouter model slug for consistent evaluation
+- **NaN handling** — metrics with NaN (hard_distractor faithfulness, no_match correctness/precision) indicate failed judge calls or unfalsifiable claims; pandas `.mean()` skips NaN, so overall means exclude these rather than treating them as 0
+
+**Recommendation:** Rerun evaluation after pinning judge model to get reliable baseline for tracking regressions.
 
 ## Requirements
 
