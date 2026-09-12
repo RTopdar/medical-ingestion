@@ -29,3 +29,11 @@ class TestBuildRagasLLM:
         llm = ragas_adapters.build_ragas_llm(model="some/override-model")
         primary_deployment = llm.langchain_llm.router.model_list[0]
         assert primary_deployment["litellm_params"]["model"] == "openrouter/some/override-model"
+
+    def test_bare_ragas_judge_model_setting_is_prefixed(self):
+        with patch.object(
+            ragas_adapters.settings, "ragas_judge_model", "bare/judge-model"
+        ):
+            llm = ragas_adapters.build_ragas_llm()
+        primary_deployment = llm.langchain_llm.router.model_list[0]
+        assert primary_deployment["litellm_params"]["model"] == "openrouter/bare/judge-model"

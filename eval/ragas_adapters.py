@@ -38,13 +38,20 @@ from llm.chat_router import ChatRouterService
 from settings import settings
 
 
+def _ensure_openrouter_prefix(model_id: str) -> str:
+    """Bare OpenRouter model ids (the old ChatOpenRouter-era convention, still
+    what .env.example documents for RAGAS_JUDGE_MODEL) need an explicit
+    "openrouter/" provider prefix before litellm will route them."""
+    return model_id if model_id.startswith("openrouter/") else f"openrouter/{model_id}"
+
+
 def build_ragas_llm(model: str | None = None) -> LangchainLLMWrapper:
     """Wrap ChatRouterService (OpenRouter->Groq->OpenRouter fallback) as the
     RAGAS judge LLM. `model` overrides the OpenRouter leg only — defaults to
     settings.ragas_judge_model, falling back to settings.chat_model."""
-    openrouter_model = model and f"openrouter/{model}"
+    chosen = model or settings.ragas_judge_model or settings.chat_model
     override_settings = settings.model_copy(
-        update={"chat_model": openrouter_model or settings.ragas_judge_model or settings.chat_model}
+        update={"chat_model": _ensure_openrouter_prefix(chosen)}
     )
     service = ChatRouterService.from_settings(override_settings)
     chat = ChatLiteLLMRouter(router=service._router, model=service.config.fallback_chain[0])
