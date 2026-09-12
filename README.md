@@ -1,6 +1,6 @@
 # Medical Ingestion
 
-Production-ready RAG pipeline for medical documents. Ingest PDFs/JSON/SQL → parse → chunk → embed (OpenRouter) → store (Postgres cache + Qdrant) → hybrid search (dense + BM25) → rerank (cross-encoder) → generate (LLM).
+Production-ready RAG pipeline for medical documents. Ingest PDFs/JSON/SQL → parse → chunk → embed (OpenRouter) → store (Postgres cache + Qdrant) → hybrid search (dense + BM25) → rerank (cross-encoder) → generate (LLM). Includes RAGAS evaluation pipeline with golden-set scoring.
 
 ## Features
 
@@ -28,6 +28,12 @@ Production-ready RAG pipeline for medical documents. Ingest PDFs/JSON/SQL → pa
 - **Fusion** — Reciprocal rank fusion (RRF) over top-k results
 - **Reranking** — Cross-encoder (OpenRouter `/rerank`) for final ranking
 - **Generation** — Grounded LLM response (streaming)
+
+### Evaluation & RAGAS Metrics
+
+- **RAGAS scoring** — Automated evaluation of the live RAG pipeline against golden-set queries with Faithfulness, ResponseRelevancy, ContextRecall, ContextPrecision, and AnswerCorrectness metrics
+- **Golden-set evaluation** — 37-item LLM answer-generation dataset for consistent pipeline quality measurement
+- **Multi-metric analysis** — Optional noise sensitivity and entity recall metrics, results exported to `.json`/`.csv` for trend analysis
 
 ### Architecture Documentation
 
