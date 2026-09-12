@@ -14,6 +14,10 @@ class TestSettingsDefaults:
     def test_default_instance_has_expected_defaults(self, monkeypatch):
         monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
         monkeypatch.delenv("GROQ_API_KEY", raising=False)
+        monkeypatch.delenv("CHAT_MODEL", raising=False)
+        monkeypatch.delenv("GROQ_CHAT_MODEL", raising=False)
+        monkeypatch.delenv("EMBEDDING_BATCH_SIZE", raising=False)
+        monkeypatch.delenv("CHUNK_SIZE", raising=False)
         s = Settings(_env_file=None)
         assert s.openrouter_api_key == ""
         assert s.chat_model == "openrouter/meta-llama/llama-2-7b-chat"
