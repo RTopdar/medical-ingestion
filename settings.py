@@ -1,51 +1,52 @@
-import os
-from typing import Optional
-
-from dotenv import load_dotenv
-
-load_dotenv()
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings:
+class Settings(BaseSettings):
     """Configuration loaded from environment (shell priority > .env)."""
 
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     # OpenRouter
-    openrouter_api_key: str = os.getenv("OPENROUTER_API_KEY", "")
-    openrouter_base_url: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     # Models
-    chat_model: str = os.getenv("CHAT_MODEL", "openrouter/meta-llama/llama-2-7b-chat")
-    embedding_model: str = os.getenv("EMBEDDING_MODEL", "openai/text-embedding-3-small")
-    embedding_batch_size: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "100"))
-    reranker_model: str = os.getenv("RERANKING_MODEL", "nvidia/llama-nemotron-rerank-vl-1b-v2:free")
-    ragas_judge_model: str | None = os.getenv("RAGAS_JUDGE_MODEL") or None
+    chat_model: str = "openrouter/meta-llama/llama-2-7b-chat"
+    embedding_model: str = "openai/text-embedding-3-small"
+    embedding_batch_size: int = Field(default=100, gt=0)
+    reranker_model: str = "nvidia/llama-nemotron-rerank-vl-1b-v2:free"
+    ragas_judge_model: str | None = None
+
+    # Groq (chat fallback provider)
+    groq_api_key: str = ""
+    groq_chat_model: str = "groq/openai/gpt-oss-120b"
 
     # Vector DB
-    vector_db_type: str = os.getenv("VECTOR_DB_TYPE", "qdrant")
-    vector_db_path: str = os.getenv("VECTOR_DB_PATH", "./data/chroma")
-    qdrant_url: str = os.getenv("QDRANT_URL", "http://localhost:6333")
-    bm25_index_path: str = os.getenv("BM25_INDEX_PATH", "./data/bm25_index")
+    vector_db_type: str = "qdrant"
+    vector_db_path: str = "./data/chroma"
+    qdrant_url: str = "http://localhost:6333"
+    bm25_index_path: str = "./data/bm25_index"
 
     # Ingestion
-    chunk_size: int = int(os.getenv("CHUNK_SIZE", "512"))
-    chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "100"))
-    input_data_path: str = os.getenv("INPUT_DATA_PATH", "./data/input")
+    chunk_size: int = Field(default=512, gt=0)
+    chunk_overlap: int = Field(default=100, ge=0)
+    input_data_path: str = "./data/input"
 
     # Storage
-    sqlite_db_path: str = os.getenv("SQLITE_DB_PATH", "./data/medical.db")
-    clinical_trials_table: str = os.getenv("CLINICAL_TRIALS_TABLE", "clinical_trials")
-    eligibility_table: str = os.getenv("ELIGIBILITY_TABLE", "eligibility")
-    postgres_dsn: str = os.getenv(
-        "POSTGRES_DSN", "postgresql+psycopg://postgres:postgres@localhost:5432/medical_ingestion"
+    sqlite_db_path: str = "./data/medical.db"
+    clinical_trials_table: str = "clinical_trials"
+    eligibility_table: str = "eligibility"
+    postgres_dsn: str = (
+        "postgresql+psycopg://postgres:postgres@localhost:5432/medical_ingestion"
     )
 
     # Logging
-    log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    log_level: str = "INFO"
 
-    @classmethod
-    def validate(cls) -> None:
+    def validate_required(self) -> None:
         """Validate required settings."""
-        if not cls.openrouter_api_key:
+        if not self.openrouter_api_key:
             raise ValueError("OPENROUTER_API_KEY not set. Set via env var or .env file.")
 
     def __repr__(self) -> str:
@@ -60,6 +61,8 @@ class Settings:
             f"  chunk_size={self.chunk_size}\n"
             f")"
         )
+
+    __str__ = __repr__
 
 
 settings = Settings()

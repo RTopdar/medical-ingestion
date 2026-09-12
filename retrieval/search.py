@@ -5,9 +5,8 @@ scripts/*_demo.py are throwaway exploration scripts, not this module's caller.
 
 import re
 import requests
-from langchain_core.messages import HumanMessage
-from langchain_openrouter import ChatOpenRouter
 
+from llm.chat_router import ChatRouterService
 from retrieval.bm25 import BM25Index
 from retrieval.hybrid import HybridRetriever
 from retrieval.reranker import Reranker
@@ -45,6 +44,7 @@ class SearchService:
         self.bm25_index.load()
         self.retriever = HybridRetriever(QdrantVectorStore(), self.bm25_index)
         self.reranker = Reranker()
+        self.chat_router = ChatRouterService.from_settings(settings)
         self.last_results: list[dict] = []
 
     def search(self, query: str, top_k: int = 5, fetch_k: int = 20) -> list[dict]:
@@ -101,7 +101,7 @@ Context from medical documents:
 IMPORTANT: When citing information, include the source number in brackets like [1], [2], etc.
 Provide a clear, concise answer based on the documents. If the answer is not in the documents, say so."""
 
-        llm = ChatOpenRouter(model=settings.chat_model, temperature=0.7, streaming=True)
-        for chunk in llm.stream([HumanMessage(content=prompt)]):
-            if chunk.content:
-                yield chunk.content
+        for chunk in self.chat_router.stream([{"role": "user", "content": prompt}], temperature=0.7):
+            content = chunk.choices[0].delta.content
+            if content:
+                yield content

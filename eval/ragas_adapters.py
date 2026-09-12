@@ -1,6 +1,7 @@
 """Wires RAGAS's judge LLM and embeddings onto this repo's existing OpenRouter
 stack — no new API provider or credential, just LangChain-shaped wrappers
-ragas expects around ChatOpenRouter (chat) and Embedder (embeddings).
+ragas expects around ChatRouterService (chat, via ChatLiteLLMRouter) and
+Embedder (embeddings).
 """
 
 import sys
@@ -28,22 +29,32 @@ if "langchain_community.chat_models.vertexai" not in sys.modules:
     sys.modules["langchain_community.chat_models.vertexai"] = _vertexai_stub
 # -----------------------------------------------------------------------------
 
-from langchain_openrouter import ChatOpenRouter
+from langchain_litellm import ChatLiteLLMRouter
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 
 from ingestion.embedder import Embedder
+from llm.chat_router import ChatRouterService
 from settings import settings
 
 
+def _ensure_openrouter_prefix(model_id: str) -> str:
+    """Bare OpenRouter model ids (the old ChatOpenRouter-era convention, still
+    what .env.example documents for RAGAS_JUDGE_MODEL) need an explicit
+    "openrouter/" provider prefix before litellm will route them."""
+    return model_id if model_id.startswith("openrouter/") else f"openrouter/{model_id}"
+
+
 def build_ragas_llm(model: str | None = None) -> LangchainLLMWrapper:
-    """Wrap ChatOpenRouter as the RAGAS judge LLM. Defaults to settings.ragas_judge_model,
-    falling back to settings.chat_model (temperature 0 for consistent judging, independent
-    of the live pipeline's answer-generation temperature)."""
-    chat = ChatOpenRouter(
-        model=model or settings.ragas_judge_model or settings.chat_model,
-        temperature=0,
+    """Wrap ChatRouterService (OpenRouter->Groq->OpenRouter fallback) as the
+    RAGAS judge LLM. `model` overrides the OpenRouter leg only — defaults to
+    settings.ragas_judge_model, falling back to settings.chat_model."""
+    chosen = model or settings.ragas_judge_model or settings.chat_model
+    override_settings = settings.model_copy(
+        update={"chat_model": _ensure_openrouter_prefix(chosen)}
     )
+    service = ChatRouterService.from_settings(override_settings)
+    chat = ChatLiteLLMRouter(router=service._router, model=service.config.fallback_chain[0])
     return LangchainLLMWrapper(chat)
 
 

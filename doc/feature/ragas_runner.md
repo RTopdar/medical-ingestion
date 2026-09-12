@@ -45,7 +45,7 @@ flowchart LR
     RUN -->|query + chunks| SS_ANSWER["SearchService.answer() (generator, joined)"]
     SS_ANSWER -->|response| RUN
     RUN --> DS["ragas.EvaluationDataset"]
-    DS --> EVAL["ragas.evaluate() — ChatOpenRouter judge + Embedder-backed embeddings"]
+    DS --> EVAL["ragas.evaluate() — ChatRouterService judge (OpenRouter->Groq fallback) + Embedder-backed embeddings"]
     EVAL --> METRICS["5 default + 2 opt-in metrics"]
     METRICS --> OUT["eval/results/ragas_run_&lt;ts&gt;.json/.csv + stdout summary (overall + per-difficulty)"]
 ```
