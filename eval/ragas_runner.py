@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from eval.ragas_adapters import build_ragas_embeddings, build_ragas_llm  # noqa: E402 (must precede ragas import — installs vertexai stub workaround)
-from ragas import EvaluationDataset, evaluate
+from ragas import EvaluationDataset, RunConfig, evaluate
 from ragas.metrics import (
     AnswerCorrectness,
     ContextEntityRecall,
@@ -106,7 +106,10 @@ class RagasEvalRunner:
         dataset = self.build_dataset(records)
 
         metrics = list(DEFAULT_METRICS) + (list(OPTIONAL_METRICS) if include_optional else [])
-        result = evaluate(dataset=dataset, metrics=metrics, llm=self.llm, embeddings=self.embeddings)
+        run_config = RunConfig(timeout=300, max_workers=4, max_retries=10, max_wait=60)
+        result = evaluate(
+            dataset=dataset, metrics=metrics, llm=self.llm, embeddings=self.embeddings, run_config=run_config
+        )
 
         self.write_results(result, golden_set)
         self.print_summary(result, golden_set)
