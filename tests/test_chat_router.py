@@ -17,6 +17,7 @@ def _fake_settings() -> Settings:
     return Settings(
         _env_file=None,
         openrouter_api_key="or-key",
+        openrouter_backup_api_key="",
         openrouter_base_url="https://openrouter.ai/api/v1",
         chat_model="openrouter/meta-llama/llama-3-70b",
         groq_api_key="gsk-key",
@@ -61,12 +62,11 @@ class TestChatRouterServiceConstruction:
 
 
 class TestChatRouterServiceFromSettings:
-    def test_from_settings_builds_openrouter_groq_openrouter_chain(self):
+    def test_from_settings_builds_openrouter_groq_chain(self):
         service = ChatRouterService.from_settings(_fake_settings())
         assert service.config.fallback_chain == [
             "openrouter-primary",
             "groq-fallback",
-            "openrouter-primary",
         ]
         names = [d.model_name for d in service.config.deployments]
         assert names == ["openrouter-primary", "groq-fallback"]
@@ -84,6 +84,21 @@ class TestChatRouterServiceFromSettings:
         assert service.config.fallback_chain == ["openrouter-primary"]
         names = [d.model_name for d in service.config.deployments]
         assert names == ["openrouter-primary"]
+
+    def test_from_settings_appends_openrouter_backup_when_key_set(self):
+        settings = _fake_settings()
+        settings = settings.model_copy(update={"openrouter_backup_api_key": "or-backup-key"})
+        service = ChatRouterService.from_settings(settings)
+        assert service.config.fallback_chain == [
+            "openrouter-primary",
+            "groq-fallback",
+            "openrouter-backup",
+        ]
+        names = [d.model_name for d in service.config.deployments]
+        assert names == ["openrouter-primary", "groq-fallback", "openrouter-backup"]
+        backup = service.config.deployments[2].litellm_params
+        assert backup.api_key == "or-backup-key"
+        assert backup.model == "openrouter/meta-llama/llama-3-70b"
 
 
 class TestChatRouterServiceCompletion:

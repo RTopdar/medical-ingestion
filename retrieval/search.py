@@ -4,36 +4,14 @@ scripts/*_demo.py are throwaway exploration scripts, not this module's caller.
 """
 
 import re
-import requests
 
+from ingestion.embedder import Embedder
 from llm.chat_router import ChatRouterService
 from retrieval.bm25 import BM25Index
 from retrieval.hybrid import HybridRetriever
 from retrieval.reranker import Reranker
 from settings import settings
 from vector_db.qdrant import QdrantVectorStore
-
-
-def embed_query(text: str) -> list[float]:
-    """Embed text via OpenRouter API."""
-    session = requests.Session()
-    session.headers.update(
-        {
-            "Authorization": f"Bearer {settings.openrouter_api_key}",
-            "Content-Type": "application/json",
-        }
-    )
-    resp = session.post(
-        f"{settings.openrouter_base_url}/embeddings",
-        json={"model": settings.embedding_model, "input": [text]},
-        timeout=60,
-    )
-    if not resp.ok:
-        raise RuntimeError(f"Embedding failed ({resp.status_code}): {resp.text}")
-    data = resp.json().get("data", [])
-    if not data:
-        raise RuntimeError("No embedding returned")
-    return data[0]["embedding"]
 
 
 class SearchService:
@@ -45,11 +23,12 @@ class SearchService:
         self.retriever = HybridRetriever(QdrantVectorStore(), self.bm25_index)
         self.reranker = Reranker()
         self.chat_router = ChatRouterService.from_settings(settings)
+        self.embedder = Embedder()
         self.last_results: list[dict] = []
 
     def search(self, query: str, top_k: int = 5, fetch_k: int = 20) -> list[dict]:
         """Fuse dense+sparse candidates, then rerank the fused shortlist for final order."""
-        query_embedding = embed_query(query)
+        query_embedding = self.embedder.embed_one(query)
         fused = self.retriever.search(query, query_embedding, top_k=fetch_k, fetch_k=fetch_k)
         reranked = self.reranker.rerank(query, fused, top_n=top_k)
         self.last_results = self._enrich_with_citations(reranked)

@@ -1,10 +1,11 @@
 """ChatRouterService — single reusable wrapper around litellm.Router for the
-OpenRouter -> Groq -> OpenRouter chat fallback chain. Used by both
+OpenRouter -> Groq -> OpenRouter-backup chat fallback chain. Used by both
 retrieval/search.py (answer generation) and eval/ragas_adapters.py (RAGAS
 judge) so the chain is defined exactly once.
 
-Groq is an optional fallback: when GROQ_API_KEY is unset, from_settings()
-builds a 1-element chain (OpenRouter only) rather than failing to construct."""
+Groq and the OpenRouter backup key are both optional fallbacks: from_settings()
+degrades the chain to whichever deployments have keys configured, rather than
+failing to construct."""
 
 import logging
 from typing import Iterator
@@ -60,9 +61,10 @@ class ChatRouterService:
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "ChatRouterService":
-        """Standard OpenRouter -> Groq -> OpenRouter chain built from Settings.
-        Groq is optional: if settings.groq_api_key is unset, degrades to an
-        OpenRouter-only chain rather than failing to construct."""
+        """Standard OpenRouter -> Groq -> OpenRouter-backup chain built from Settings.
+        Groq and the OpenRouter backup key are each optional: from_settings()
+        degrades the chain to whichever deployments have keys configured,
+        rather than failing to construct."""
         deployments = [
             LiteLLMDeployment(
                 model_name="openrouter-primary",
@@ -81,6 +83,8 @@ class ChatRouterService:
                 model_info={"cooldown_time": 0},
             ),
         ]
+        fallback_chain = ["openrouter-primary"]
+
         if settings.groq_api_key:
             deployments.append(
                 LiteLLMDeployment(
@@ -95,12 +99,30 @@ class ChatRouterService:
                     ),
                 ),
             )
-            fallback_chain = ["openrouter-primary", "groq-fallback", "openrouter-primary"]
+            fallback_chain.append("groq-fallback")
         else:
             logger.warning(
-                "GROQ_API_KEY not set — chat fallback chain degraded to OpenRouter-only"
+                "GROQ_API_KEY not set — chat fallback chain has no Groq deployment"
             )
-            fallback_chain = ["openrouter-primary"]
+
+        if settings.openrouter_backup_api_key:
+            deployments.append(
+                LiteLLMDeployment(
+                    model_name="openrouter-backup",
+                    litellm_params=LiteLLMModelParams(
+                        model=_openrouter_wire_model_id(settings.chat_model),
+                        api_key=settings.openrouter_backup_api_key,
+                        api_base=settings.openrouter_base_url,
+                    ),
+                    model_info={"cooldown_time": 0},
+                ),
+            )
+            fallback_chain.append("openrouter-backup")
+        else:
+            logger.warning(
+                "OPENROUTER_BACKUP_API_KEY not set — chat fallback chain has no "
+                "OpenRouter backup deployment"
+            )
 
         config = ChatRouterConfig(deployments=deployments, fallback_chain=fallback_chain)
         return cls(config)

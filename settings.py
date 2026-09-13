@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     # OpenRouter
     openrouter_api_key: str = ""
+    openrouter_backup_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     # Models
@@ -53,6 +54,7 @@ class Settings(BaseSettings):
         return (
             f"Settings(\n"
             f"  openrouter_api_key={'***' if self.openrouter_api_key else 'NOT SET'}\n"
+            f"  openrouter_backup_api_key={'***' if self.openrouter_backup_api_key else 'NOT SET'}\n"
             f"  chat_model={self.chat_model}\n"
             f"  embedding_model={self.embedding_model}\n"
             f"  embedding_batch_size={self.embedding_batch_size}\n"

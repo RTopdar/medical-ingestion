@@ -1,9 +1,13 @@
-"""Embedding service backed by OpenRouter's /embeddings endpoint."""
+"""Embedding service backed by litellm's OpenRouter embeddings support, with a
+primary -> backup OpenRouter key fallback chain (mirrors llm/chat_router.py)."""
 
-import requests
+from litellm import Router
+from litellm.exceptions import RateLimitError
 from langchain_core.embeddings import Embeddings
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
 
+from llm.chat_router import _openrouter_wire_model_id
+from llm.config import ChatRouterConfig, LiteLLMDeployment, LiteLLMModelParams
 from models.vectors import Chunk
 from settings import settings
 from storage.chunk_store import ChunkStore
@@ -14,10 +18,52 @@ class EmbedderError(RuntimeError):
     """Raised when the OpenRouter embeddings request fails."""
 
 
+def _build_embedding_router(model: str) -> tuple[Router, str]:
+    """Primary -> backup OpenRouter key chain, same shape as ChatRouterService.
+    Returns the Router and the fallback_chain[0] model_name to call with."""
+    wire_model = _openrouter_wire_model_id(f"openrouter/{model}")
+    deployments = [
+        LiteLLMDeployment(
+            model_name="embedding-primary",
+            litellm_params=LiteLLMModelParams(
+                model=wire_model,
+                api_key=settings.openrouter_api_key,
+                api_base=settings.openrouter_base_url,
+            ),
+            model_info={"cooldown_time": 0},
+        ),
+    ]
+    fallback_chain = ["embedding-primary"]
+    if settings.openrouter_backup_api_key:
+        deployments.append(
+            LiteLLMDeployment(
+                model_name="embedding-backup",
+                litellm_params=LiteLLMModelParams(
+                    model=wire_model,
+                    api_key=settings.openrouter_backup_api_key,
+                    api_base=settings.openrouter_base_url,
+                ),
+                model_info={"cooldown_time": 0},
+            ),
+        )
+        fallback_chain.append("embedding-backup")
+
+    config = ChatRouterConfig(deployments=deployments, fallback_chain=fallback_chain)
+    fallback_tail = config.fallback_chain[1:]
+    fallbacks = [{config.fallback_chain[0]: fallback_tail}] if fallback_tail else []
+    router = Router(
+        model_list=[d.model_dump() for d in config.deployments],
+        fallbacks=fallbacks,
+        num_retries=0,
+    )
+    return router, config.fallback_chain[0]
+
+
 class Embedder(Embeddings):
-    """Generates text embeddings via OpenRouter, using Postgres (ChunkStore) as a
-    read-only cache to skip repeat API calls. Does not persist embeddings itself —
-    that's the ingest script's job (one Chunk row per occurrence, plus Qdrant sync).
+    """Generates text embeddings via OpenRouter (through litellm), using Postgres
+    (ChunkStore) as a read-only cache to skip repeat API calls. Does not persist
+    embeddings itself — that's the ingest script's job (one Chunk row per
+    occurrence, plus Qdrant sync).
 
     Implements langchain_core.embeddings.Embeddings so this same instance can be
     wrapped by ragas.embeddings.LangchainEmbeddingsWrapper for eval scoring
@@ -32,13 +78,7 @@ class Embedder(Embeddings):
         self.model = model or settings.embedding_model
         self.batch_size = batch_size or settings.embedding_batch_size
         self.chunk_store = chunk_store or ChunkStore(default_engine)
-        self._session = requests.Session()
-        self._session.headers.update(
-            {
-                "Authorization": f"Bearer {settings.openrouter_api_key}",
-                "Content-Type": "application/json",
-            }
-        )
+        self._router, self._router_model_name = _build_embedding_router(self.model)
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         """
@@ -104,20 +144,18 @@ class Embedder(Embeddings):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
+        # A 429 needs the router's primary->backup fallback, not a same-key retry —
+        # retrying the exhausted key would just burn the retry budget for nothing.
+        retry=retry_if_not_exception_type(RateLimitError),
         reraise=True,
     )
     def _embed_batch(self, batch: list[str]) -> list[list[float]]:
-        resp = self._session.post(
-            f"{settings.openrouter_base_url}/embeddings",
-            json={"model": self.model, "input": batch},
-            timeout=60,
-        )
-        if not resp.ok:
-            raise EmbedderError(
-                f"OpenRouter embeddings request failed ({resp.status_code}): {resp.text}"
-            )
+        try:
+            resp = self._router.embedding(model=self._router_model_name, input=batch)
+        except Exception as e:
+            raise EmbedderError(f"OpenRouter embeddings request failed: {e}") from e
 
-        data = resp.json().get("data", [])
+        data = resp.data
         if len(data) != len(batch):
             raise EmbedderError(f"Expected {len(batch)} embeddings, got {len(data)}")
 
