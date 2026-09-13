@@ -11,7 +11,7 @@ Check this file FIRST when a new problem is reported — before touching the cod
 
 | ID | Summary | Status | Doc |
 |----|---------|--------|-----|
-| _none yet_ | | | |
+| [INC-001](/doc/bug/incidents/INC-001-openrouter-free-model-404-fallback-storm.md) | RAGAS eval crash: litellm strips `openrouter/` so `openrouter/free` 404s as bare `free`; silent Groq failover drains 8k TPM cap | resolved | [INC-001](../bug/incidents/INC-001-openrouter-free-model-404-fallback-storm.md) |
 
 ## Conventions
 

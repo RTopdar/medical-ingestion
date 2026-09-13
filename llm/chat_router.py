@@ -16,6 +16,24 @@ from settings import Settings
 
 logger = logging.getLogger(__name__)
 
+_OPENROUTER_PREFIX = "openrouter/"
+
+
+def _openrouter_wire_model_id(chat_model: str) -> str:
+    """Return a litellm model id that, after litellm strips the provider prefix,
+    is sent to OpenRouter intact.
+
+    litellm strips the leading 'openrouter/' from the model it sends on the wire.
+    That is correct for real model ids (e.g. 'openrouter/meta-llama/x' -> 'meta-llama/x'),
+    but OpenRouter's special root-level aliases ('openrouter/free', 'openrouter/auto')
+    must be sent in full form — a bare 'free' 404s with "No endpoints available for
+    openrouter/free". Double-prefix only those aliases so litellm sends the full id."""
+    if chat_model.startswith(_OPENROUTER_PREFIX):
+        remainder = chat_model[len(_OPENROUTER_PREFIX):]
+        if "/" not in remainder:
+            return _OPENROUTER_PREFIX + chat_model
+    return chat_model
+
 
 class ChatRouterService:
     """Owns one litellm Router built from a validated ChatRouterConfig."""
@@ -49,10 +67,18 @@ class ChatRouterService:
             LiteLLMDeployment(
                 model_name="openrouter-primary",
                 litellm_params=LiteLLMModelParams(
-                    model=settings.chat_model,
+                    model=_openrouter_wire_model_id(settings.chat_model),
                     api_key=settings.openrouter_api_key,
                     api_base=settings.openrouter_base_url,
                 ),
+                # litellm cooldowns a deployment for 5s out of the box on a 404
+                # (its "non-retryable" class). OpenRouter's "free" alias returns
+                # that 404 transiently (no free endpoint for the key at that
+                # instant), and a hard cooldown makes the primary *statically
+                # unavailable* to the next request — a regression vs. the old
+                # stateless direct call. cooldown_time=0 keeps the deployment
+                # immediately available so failures are per-call, like before.
+                model_info={"cooldown_time": 0},
             ),
         ]
         if settings.groq_api_key:
@@ -62,6 +88,10 @@ class ChatRouterService:
                     litellm_params=LiteLLMModelParams(
                         model=settings.groq_chat_model,
                         api_key=settings.groq_api_key,
+                        # Groq's default TPM for this model is very low (8k).
+                        # Cap output tokens so a burst of fallback calls doesn't
+                        # exhaust the minute budget after 1-2 requests.
+                        max_tokens=1024,
                     ),
                 ),
             )

@@ -19,11 +19,14 @@ Prior to this feature, both `SearchService.answer()` and the RAGAS judge LLM bui
 
 - `llm/config.py` — strict pydantic (`ConfigDict(strict=True, extra="forbid")`) models describing a litellm Router configuration, so no raw dict is ever handed to `litellm.Router` unvalidated:
   - `LiteLLMModelParams` — model/api_key/api_base/temperature/max_tokens/timeout. `model` is validated to require a provider prefix (e.g. `groq/llama-3.3-70b`, `openrouter/...`) via `must_have_provider_prefix`.
-  - `LiteLLMDeployment` — `model_name` + `litellm_params`, one entry in `Router`'s `model_list`.
+  - `LiteLLMDeployment` — `model_name` + `litellm_params` (added 2026-09-13: `model_info: dict = Field(default_factory=dict)` — litellm requires `model_info` to be a dict, not None; lets per-deployment router settings like `cooldown_time` pass through), one entry in `Router`'s `model_list`.
   - `ChatRouterConfig` — `deployments` list + ordered `fallback_chain` of `model_name`s. `chain_references_known_deployments` validator rejects a chain entry that doesn't match a declared deployment.
 - `llm/chat_router.py::ChatRouterService` — owns one `litellm.Router` built from a validated `ChatRouterConfig`.
   - `.complete(messages, **kwargs)` / `.stream(messages, **kwargs)` — both call `router.completion(model=fallback_chain[0], ...)`; litellm's Router internally walks the `fallbacks` mapping on failure, not the caller.
-  - `.from_settings(settings)` classmethod — builds the project's standard 3-step chain: `["openrouter-primary", "groq-fallback", "openrouter-primary"]` (OpenRouter primary → Groq → retry OpenRouter once more), not a simple 2-provider fallback. Deployment configs pull `settings.chat_model`/`settings.openrouter_api_key`/`settings.openrouter_base_url` (primary) and `settings.groq_chat_model`/`settings.groq_api_key` (fallback).
+  - `.from_settings(settings)` classmethod — builds the project's standard 3-step chain: `["openrouter-primary", "groq-fallback", "openrouter-primary"]` (OpenRouter primary → Groq → retry OpenRouter once more), not a simple 2-provider fallback. Deployment configs pull `settings.chat_model`/`settings.openrouter_api_key`/`settings.openrouter_base_url` (primary) and `settings.groq_chat_model`/`settings.groq_api_key` (fallback). Base params set by `from_settings`:
+    - `_openrouter_wire_model_id(chat_model)` module helper — double-prefixes only root-level OpenRouter aliases (`openrouter/free` → `openrouter/openrouter/free`) so litellm sends the fully-qualified `openrouter/free` on the wire; leaves real model ids (`openrouter/meta-llama/x`) untouched. Rationale: litellm strips the leading `openrouter/` before sending, which breaks OpenRouter's root-level aliases (bare `free` 404s with "No endpoints available for openrouter/free"), silently falling back to Groq every time.
+    - openrouter-primary sets `model_info={"cooldown_time": 0}` — litellm cooldowns a deployment 5s on a 404 by default; 0 keeps it immediately available so a transient OpenRouter 404 on the "free" alias doesn't statically stall the primary for the next request.
+    - groq-fallback sets `max_tokens=1024` — Groq's TPM cap for `gpt-oss-120b` is ~8k and requests are token-heavy; capping output lets the fallback survive more than 1-2 calls before exhausting the minute budget.
 
 ## Settings
 

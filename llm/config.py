@@ -35,6 +35,7 @@ class LiteLLMDeployment(BaseModel):
 
     model_name: str = Field(min_length=1)
     litellm_params: LiteLLMModelParams
+    model_info: dict = Field(default_factory=dict)
 
 
 class ChatRouterConfig(BaseModel):
