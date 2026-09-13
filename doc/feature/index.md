@@ -46,7 +46,7 @@ OKF (Open Knowledge Format v0.2) bundle. Each file below is one concept document
 - [Alembic Migrations](/doc/feature/alembic_migrations.md) — `migrations/` + `alembic.ini`, Postgres schema migration tooling for the SQLModel tables in `models/vectors.py`
 - [Retrieval Golden Set](/doc/feature/retrieval_golden_set.md) — `eval/golden_set.py`, query -> relevant doc_id(s) eval dataset generator for retrieval ranking quality (BM25/hybrid/reranker)
 - [LLM Answer Golden Set](/doc/feature/llm_golden_set.md) — `eval/llm_golden_set.py`, RAGAS-style eval dataset generator for `SearchService.answer` (faithfulness/relevancy/precision/recall/correctness), 37 items
-- [Chat Router (litellm fallback chain)](/doc/feature/chat_router.md) — `llm/`, shared `litellm.Router` wrapper providing an OpenRouter -> Groq -> OpenRouter chat fallback chain, used by both answer generation and the RAGAS judge LLM
+- [Chat Router (litellm fallback chain)](/doc/feature/chat_router.md) — `llm/` package, shared `litellm.Router` wrapper providing an OpenRouter -> Groq -> OpenRouter chat fallback chain (replaces per-call `ChatOpenRouter` in answer generation and RAGAS judge, single source of truth)
 - [RAGAS Adapters](/doc/feature/ragas_adapters.md) — `eval/ragas_adapters.py`, wires RAGAS's judge LLM/embeddings onto ChatRouterService (via ChatLiteLLMRouter) + Embedder (no new provider)
 - [RAGAS Eval Runner](/doc/feature/ragas_runner.md) — `eval/ragas_runner.py`, `RagasEvalRunner` scores the live pipeline against the LLM Answer Golden Set with 5 default + 2 optional RAGAS metrics
 
