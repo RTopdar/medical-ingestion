@@ -313,27 +313,31 @@ See [RAGAS Eval Runner](/doc/feature/ragas_runner.md) and [RAGAS Adapters](/doc/
 
 ## Evaluation Results
 
-**37-item LLM answer-generation golden set, scored against live SearchService pipeline (Sept 2026):**
+**37-item LLM answer-generation golden set, scored against live SearchService pipeline (2026-09-14):**
 
-| Metric | Overall | Easy | Medium | Hard (Distractor) | No Match |
-|--------|---------|------|--------|-------------------|----------|
-| **Faithfulness** | 0.857 | 0.976 | 1.000 | 0.000 | NaN |
-| **Answer Relevancy** | 0.764 | 0.685 | 0.802 | 0.707 | 0.998 |
-| **Context Precision** | 1.000 | 1.000 | NaN | NaN | NaN |
-| **Context Recall** | 0.981 | 0.955 | 1.000 | 1.000 | 1.000 |
-| **Answer Correctness** | 0.593 | 0.315 | 0.872 | NaN | NaN |
+| Metric | Score | Easy | Medium | Hard (Distractor) | No Match |
+|--------|-------|------|--------|-------------------|----------|
+| **Context Recall** | 0.94 | 0.95 | 1.00 | 0.89 | 0.83 |
+| **Faithfulness** | 0.82 | 0.96 | 0.66 | 0.86 | 0.83 |
+| **Context Precision** | 0.82 | 0.84 | 0.93 | 0.88 | 0.33 |
+| **Response Relevance** | 0.69 | 0.90 | 0.56 | 0.95 | 0.00 |
+| **Answer Correctness** | 0.44 | 0.57 | 0.28 | 0.49 | 0.50 |
+| **Entity Recall** | 0.21 | 0.30 | 0.14 | 0.20 | 0.00 |
 
 **Key findings:**
-- Retrieval strong (recall 0.981, precision 1.0) — hybrid search + reranking working well
-- Generation tracking varies by query difficulty — medium/hard queries diverge from reference phrasing/structure
-- **Hard distractor tier caveat:** faithfulness=0 likely due to judge LLM instability (see caveats below)
+- **Retrieval excellent** — context recall 0.94, faithfulness 0.82, precision 0.82. Hybrid search + reranking + chunking working well.
+- **Entity recall & answer correctness poor** — both metrics use `openrouter/free` (free-tier auto-router) as judge AND answer generator. Judge model is unstable on free tier; some calls return garbage ("User Safety: safe" classification stubs instead of real judgment). This tanks scores that depend on extraction/comparison.
 
-**Caveats — metrics not fully reliable:**
-- **Judge LLM flakiness** — OpenRouter free/auto-routed models swap mid-run; some calls return moderation stubs ("User response: safe") instead of real judgment, causing false 0/NaN scores on faithfulness and answer correctness
-- **No fixed model pinned** — `RAGAS_JUDGE_MODEL` env var empty, falling back to variable chat model. To fix: set `RAGAS_JUDGE_MODEL` to one deterministic OpenRouter model slug for consistent evaluation
-- **NaN handling** — metrics with NaN (hard_distractor faithfulness, no_match correctness/precision) indicate failed judge calls or unfalsifiable claims; pandas `.mean()` skips NaN, so overall means exclude these rather than treating them as 0
+**Root cause — dual use of flaky free-tier model:**
+- **Answer model** (`openrouter/free`) — occasionally returns empty completions or moderation text instead of real answers (fixed by [INC-002](/doc/bug/incidents/INC-002-openrouter-free-silent-empty-completion.md) retry logic); 3/37 calls visibly malformed.
+- **Judge model** (`openrouter/free` for RAGAS) — extracts entities and compares answers unreliably; judge quality is load-bearing for entity-recall and answer-correctness metrics, so free-tier instability propagates directly into scores.
 
-**Recommendation:** Rerun evaluation after pinning judge model to get reliable baseline for tracking regressions.
+**Caveats:**
+- **Metrics reliability** — Entity recall (0.21) and Answer Correctness (0.44) are artifacts of judge flakiness, not retrieval/generation failure. Retrieval metrics (recall, faithfulness, precision) are reliable.
+- **No fixed judge model** — `RAGAS_JUDGE_MODEL` env var empty, falling back to variable `openrouter/free`. To fix: `export RAGAS_JUDGE_MODEL="openai/gpt-4o"` (or pinned paid OpenRouter model) for deterministic scoring.
+- **NaN handling** — `pandas.mean()` skips NaN, so overall scores exclude hard/no-match tiers where judge calls failed; true means are lower.
+
+**Recommendation:** Pin judge model to paid/stable tier (`gpt-4o`, `claude-opus-5`, etc.) and rerun for reliable baselines and regression tracking. Retrieval quality is already strong; evaluation flakiness is an instrumentation problem, not a pipeline problem.
 
 ## Requirements
 
