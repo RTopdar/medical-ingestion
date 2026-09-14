@@ -12,6 +12,7 @@ Check this file FIRST when a new problem is reported — before touching the cod
 | ID | Summary | Status | Doc |
 |----|---------|--------|-----|
 | [INC-001](/doc/bug/incidents/INC-001-openrouter-free-model-404-fallback-storm.md) | RAGAS eval crash: litellm strips `openrouter/` so `openrouter/free` 404s as bare `free`; silent Groq failover drains 8k TPM cap | resolved | [INC-001](../bug/incidents/INC-001-openrouter-free-model-404-fallback-storm.md) |
+| [INC-002](/doc/bug/incidents/INC-002-openrouter-free-silent-empty-completion.md) | RAGAS eval crash: `openrouter/free` intermittently returns HTTP 200 with empty `delta.content` on 1/37 queries; not detectable by litellm Router | resolved | [INC-002](../bug/incidents/INC-002-openrouter-free-silent-empty-completion.md) |
 
 ## Conventions
 

@@ -55,9 +55,24 @@ class ChatRouterService:
         )
 
     def stream(self, messages: list[dict], **kwargs) -> Iterator:
-        return self._router.completion(
-            model=self.config.fallback_chain[0], messages=messages, stream=True, **kwargs
-        )
+        """Yield content deltas for one completion, retrying once if the first
+        attempt streams an HTTP 200 with no content at all — OpenRouter's free-tier
+        alias sometimes returns a content-less success instead of an error when the
+        routed-to free model is degraded, and litellm has no way to detect this
+        itself since the response is well-formed."""
+        for attempt in range(2):
+            chunks = list(self._router.completion(
+                model=self.config.fallback_chain[0], messages=messages, stream=True, **kwargs
+            ))
+            if any(c.choices[0].delta.content for c in chunks):
+                yield from chunks
+                return
+            if attempt == 0:
+                logger.warning(
+                    "chat completion returned no content on attempt 1 (OpenRouter "
+                    "free-tier quirk) — retrying once"
+                )
+        yield from chunks
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "ChatRouterService":
